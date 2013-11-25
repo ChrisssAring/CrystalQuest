@@ -1,0 +1,10 @@
+name: CrystalQuest
+main: nl.SugCube.CrystalQuest.CrystalQuest
+version: '0.1'
+authors: [MrSugarCaney]
+description: >
+             The battle for the crystals!
+commands:
+  cq:
+    description: Main command of CrystalQuest-plugin.
+    permission: crystalquest

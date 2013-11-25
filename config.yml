@@ -1,0 +1,63 @@
+updates:
+  check-for-updates: true
+  show-admin: true
+arena:
+  countdown: 30
+  game-length: 450
+  after-count: 15
+  crystal-spawn-chance: 18
+  item-spawn-chance: 120
+  team-colour-prefix: true
+kit:
+  default:
+    name: '&dCrystal Hunter'
+    icon: eyeofender
+    lore: '&7The default class%nl%&f&7Used to smash some *ss'
+    items:
+    - team_helmet
+    - team_chestplate
+    - team_leggings
+    - team_boots
+    - woodsword,1,0,unbreaking,10
+    - bow,1,0,infinity,1,unbreaking,10
+    - arrow,1
+  archer:
+    name: '&aArcher'
+    icon: bow
+    lore: '&2&oRanged Blood'
+    items:
+    - team_helmet
+    - leatherchestplate
+    - leatherleggings
+    - leatherboots
+    - bow,1,0,power,1,punch,2,infinity,1,sharpness,1
+    - arrow,1
+  knight:
+    name: '&7Knight'
+    icon: stonesword
+    lore: '&b&oMedieval Madness'
+    items:
+     - chainmailhelmet
+     - chainmailchestplate
+     - team_leggings
+     - chainmailboots
+     - stonesword,1,0,unbreaking,10,sharpness,1
+  fishtfight:
+    name: '&bFishtFight'
+    icon: rawfish
+    lore: '&9&oFlippin Heck Mun!'
+    items:
+     - team_helmet
+     - rawfish
+  iron-golem:
+    name: '&a[VIP] &6Iron Golem'
+    icon: pumpkin,1,0,sharpness,1
+    lore: '&aOnly the strongest will survive'
+    items:
+    - team_helmet
+    - ironchestplate,1,0,protection,1
+    - ironleggings,1,0,protection,1
+    - team_boots
+    - ironsword,1,0,unbreaking,10
+    - bow,1,0,infinity,1,unbreaking,10
+    - arrow,1
