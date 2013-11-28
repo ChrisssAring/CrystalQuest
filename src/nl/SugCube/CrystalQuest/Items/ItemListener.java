@@ -88,7 +88,7 @@ public class ItemListener implements Listener {
 						
 						p.playSound(p.getLocation(), Sound.ANVIL_LAND, 20F, 20F);
 						final Snowball ball = p.launchProjectile(Snowball.class);
-						ball.setVelocity(p.getLocation().getDirection().multiply(18));
+						ball.setVelocity(p.getLocation().getDirection().multiply(21));
 						ParticleHandler.balls.add(ball);
 						Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
 							public void run() {
@@ -274,6 +274,82 @@ public class ItemListener implements Listener {
 						w.getWorld().playSound(w.getLocation(), Sound.WOLF_BARK, 3L, 3L);
 						am.getArena(p).getGameWolfs().add(w);
 					}
+					/*
+					 * USE: GLUE
+					 */
+					else if (p.getInventory().getItemInHand().getType() == Material.SLIME_BALL) {
+						ItemStack is = p.getInventory().getItemInHand();
+						if (is.getAmount() == 1) {
+							p.getInventory().remove(p.getInventory().getItemInHand());
+						} else {
+							is.setAmount(is.getAmount() - 1);
+						}
+						PotionEffect effect = new PotionEffect(PotionEffectType.SLOW, 118, 14);
+						
+						Arena a = plugin.getArenaManager().getArena(p);
+						Random ran = new Random();
+						boolean canSelect = true;
+						int targetTeam = 0;
+						
+						if (a.getPlayers().size() > 1) {
+							do {
+								targetTeam = ran.nextInt(a.getTeamCount());
+								if (targetTeam != a.getTeam(p)) {
+									for (Player player : a.getPlayers()) {
+										if (a.getTeam(player) == targetTeam) {
+											canSelect = false;
+										}
+									}
+								}
+							} while (canSelect);
+							
+							for (OfflinePlayer olTarget : a.getTeams()[targetTeam].getPlayers()) {
+								for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+									if (onlinePlayer == olTarget) {
+										onlinePlayer.addPotionEffect(effect);
+										onlinePlayer.playSound(p.getLocation(), Sound.SLIME_WALK2, 12F, 12F);
+									}
+								}
+							}
+						}
+					}
+					/*
+					 * USE: LIGHTNING BOLT
+					 */
+					else if (p.getInventory().getItemInHand().getType() == Material.FEATHER) {
+						ItemStack is = p.getInventory().getItemInHand();
+						if (is.getAmount() == 1) {
+							p.getInventory().remove(p.getInventory().getItemInHand());
+						} else {
+							is.setAmount(is.getAmount() - 1);
+						}
+						
+						Arena a = plugin.getArenaManager().getArena(p);
+						Random ran = new Random();
+						boolean canSelect = true;
+						int targetTeam = 0;
+						
+						if (a.getPlayers().size() > 1) {
+							do {
+								targetTeam = ran.nextInt(a.getTeamCount());
+								if (targetTeam != a.getTeam(p)) {
+									for (Player player : a.getPlayers()) {
+										if (a.getTeam(player) == targetTeam) {
+											canSelect = false;
+										}
+									}
+								}
+							} while (canSelect);
+							
+							for (OfflinePlayer olTarget : a.getTeams()[targetTeam].getPlayers()) {
+								for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+									if (onlinePlayer == olTarget) {
+										onlinePlayer.getWorld().strikeLightning(onlinePlayer.getLocation());
+									}
+								}
+							}
+						}
+					}
 				}
 			}
 			/*
@@ -372,7 +448,7 @@ public class ItemListener implements Listener {
 		names.add("Maria");
 		names.add("Willem 2nd");
 		names.add("François");
-		names.add("Jean-Pierre");
+		names.add("Jean-Pièrre");
 		names.add("Biscuit");
 		names.add("Fabel");
 		names.add("Elisabeth");
@@ -405,6 +481,9 @@ public class ItemListener implements Listener {
 		names.add("Peter");
 		names.add("Trijntje");
 		names.add("Corry");
+		names.add("Maartje");
+		names.add("Anique");
+		names.add("Sjoerd");
 		
 		return names.get((new Random()).nextInt(names.size()));
 	}

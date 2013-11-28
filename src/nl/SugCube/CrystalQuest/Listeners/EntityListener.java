@@ -48,25 +48,68 @@ public class EntityListener implements Listener {
 				c.getWorld().dropItem(c.getLocation(), plugin.itemHandler.getItemByName("Crystal Shard"));
 			}
 		}
+		
+		if (plugin.prot.isInProtectedArena(ent.getLocation())) {
+			e.getDrops().clear();
+		}
 	}
 	
 	@EventHandler
 	public void onEntityExplode(EntityExplodeEvent e) {
-		if (e.getEntity() instanceof EnderCrystal) {
+		if (e.getEntity() instanceof EnderCrystal) {			
+			if (plugin.prot.isInProtectedArena(e.getEntity().getLocation())) {
+				e.setCancelled(true);
+				Location loc = e.getLocation();
+				loc.getWorld().createExplosion(loc.getX(), loc.getY() + 2, loc.getZ(), 5.0F, false, false);
+				Entity toRemove = null;
+				for (Arena a : plugin.getArenaManager().getArenas()) {
+					for (Entity ent : a.getGameCrystals()) {
+						if (ent == e.getEntity()) {
+							toRemove = ent;
+						}
+					}
+					if (toRemove != null) {
+						a.getGameCrystals().remove(toRemove);
+					}
+				}
+			}
+			
 			for (Arena a : plugin.getArenaManager().getArenas()) {
+				Entity toRemove = null;
 				for (Entity ent : a.getGameCrystals()) {
 					if (ent == e.getEntity()) {
 						e.setCancelled(true);
 						Location loc = e.getLocation();
 						loc.getWorld().createExplosion(loc.getX(), loc.getY(), loc.getZ(), 5.0F, false, false);
+						toRemove = ent;
 					}
+				}
+				if (toRemove != null) {
+					a.getGameCrystals().remove(toRemove);
 				}
 			}
 		} else if (e.getEntity() instanceof Creeper) {
+			if (plugin.prot.isInProtectedArena(e.getEntity().getLocation())) {
+				e.setCancelled(true);
+				Location loc = e.getLocation();
+				loc.getWorld().createExplosion(loc.getX(), loc.getY(), loc.getZ(), 4.0F, false, false);
+				Creeper toRemove = null;
+				for (Arena a : plugin.getArenaManager().getArenas()) {
+					for (Creeper c : a.getGameCreepers()) {
+						if (c == e.getEntity()) {
+							toRemove = c;
+						}
+					}
+					if (toRemove != null) {
+						a.getGameCreepers().remove(toRemove);
+					}
+				}
+			}
+			
 			for (Arena a : plugin.getArenaManager().getArenas()) {
 				Creeper toRemove = null;
 				for (Creeper c : a.getGameCreepers()) {
-					if (c == e.getEntity()) {
+					if (c == e.getEntity() || plugin.prot.isInProtectedArena(c.getLocation())) {
 						e.setCancelled(true);
 						Location loc = e.getLocation();
 						loc.getWorld().createExplosion(loc.getX(), loc.getY(), loc.getZ(), 4.0F, false, false);
@@ -85,7 +128,6 @@ public class EntityListener implements Listener {
 		/*
 		 * Block friendly Dog-fire
 		 */
-		
 		if (e.getEntity() instanceof Wolf) {
 			Wolf w = (Wolf) e.getEntity();
 			DyeColor collar = w.getCollarColor();

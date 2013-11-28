@@ -91,10 +91,17 @@ public class InventoryListener implements Listener {
 							plugin.im.playerClass.remove(player);
 							player.sendMessage(Broadcast.TAG + "You have chosen a random class!");
 						} else {
-							plugin.im.setPlayerClass(player, plugin.menuSC.getTechnicalClassName(
-									e.getCurrentItem().getItemMeta().getDisplayName()));
-							player.sendMessage(Broadcast.TAG + "You have chosen the " + e.getCurrentItem().getItemMeta()
-									.getDisplayName() + ChatColor.YELLOW + " class!");
+							String techName = plugin.menuSC.getTechnicalClassName(
+									e.getCurrentItem().getItemMeta().getDisplayName());
+							if (player.hasPermission("crystalquest.admin") || player.hasPermission("crystalquest.staff") ||
+									player.hasPermission("crystalquest.kit." + techName) ||
+									player.hasPermission("crystalquest.kit.*")) {
+								plugin.im.setPlayerClass(player, techName);
+								player.sendMessage(Broadcast.TAG + "You have chosen the " + e.getCurrentItem().getItemMeta()
+										.getDisplayName() + ChatColor.YELLOW + " class!");
+							} else {
+								player.sendMessage(ChatColor.RED + "[!!] Sorry, you don't have permision to select this kit!");
+							}
 						}
 					} else {
 						return;

@@ -27,8 +27,12 @@ public class Help {
 					" Set a Crystalspawn in the arena.");
 			s.sendMessage(Broadcast.HELP + "/cq itemspawn <arena> [clear]" + ChatColor.YELLOW +
 					" Set an Itemspawn in the arena.");
+			s.sendMessage(Broadcast.HELP + "/cq doublejump <arena>" + ChatColor.YELLOW + " Toggle if people can double jump");
 			s.sendMessage(Broadcast.HELP + "/cq check <arena>" + ChatColor.YELLOW + " See info about the Arena");
 			s.sendMessage(Broadcast.HELP + "/cq reset <arena>" + ChatColor.YELLOW + " Resets an Arena");
+			s.sendMessage(Broadcast.HELP + "/cq wand" + ChatColor.YELLOW + " Gives you the wand");
+			s.sendMessage(Broadcast.HELP + "/cq protect <arena> [remove]" + ChatColor.YELLOW + " (Un)Protects an Arena");
+			s.sendMessage(Broadcast.HELP + "/cq pos <1|2>" + ChatColor.YELLOW + " Sets position 1 or 2.");
 		}
 		if (!(s instanceof Player)) {
 			s.sendMessage(Broadcast.HELP + "/cq hardreset" + ChatColor.YELLOW + " Resets ALL data");

@@ -2,12 +2,13 @@ updates:
   check-for-updates: true
   show-admin: true
 arena:
-  countdown: 30
-  game-length: 450
+  countdown: 10
+  game-length: 600
   after-count: 15
   crystal-spawn-chance: 18
   item-spawn-chance: 120
   team-colour-prefix: true
+  force-even-teams: true
 kit:
   default:
     name: '&dCrystal Hunter'
@@ -49,6 +50,18 @@ kit:
     items:
      - team_helmet
      - rawfish
+  tnt:
+    name: '&4TNT'
+    icon: TNT
+    lore: '&cBLOW IT ALL UP!!!'
+    items:
+     - woodsword,1,0,unbreaking,10,knockback,1
+     - potion,64,16428
+     - tnt,8
+     - goldenhelmet,1,0,blastprotection,2,unbreaking,10
+     - team_boots,1,0,blastprotection,2,unbreaking,10
+     - team_chestplate,1,0,blastprotection,2,unbreaking,10
+     - team_leggings,1,0,blastprotection,2,unbreaking,10
   iron-golem:
     name: '&a[VIP] &6Iron Golem'
     icon: pumpkin,1,0,sharpness,1

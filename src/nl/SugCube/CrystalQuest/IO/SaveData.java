@@ -63,6 +63,32 @@ public class SaveData {
 			data.set(pfx + "player-spawns", toStringList(a.getPlayerSpawns()));
 			data.set(pfx + "crystal-spawns", toStringList(a.getCrystalSpawns()));
 			data.set(pfx + "item-spawns", toStringList(a.getItemSpawns()));
+			data.set(pfx + "double-jump", a.canDoubleJump());
+			
+			if (a.getProtection() != null) {
+				if (a.getProtection()[0] != null && a.getProtection()[1] != null) {
+					List<String> list = new ArrayList<String>();
+					list.add(SMeth.toLocationString(a.getProtection()[0]));
+					list.add(SMeth.toLocationString(a.getProtection()[1]));
+					data.set(pfx + "protection", list);
+				} else {
+					data.set(pfx + "protection", null);
+				}
+			} else {
+				data.set(pfx + "protection", null);
+			}
+			
+			for (int i = 0; i < 6; i++) {
+				if (a.getTeamSpawns().get(i).size() > 0) {
+					List<String> list = new ArrayList<String>();
+					for (Location loc : a.getTeamSpawns().get(i)) {
+						list.add(SMeth.toLocationString(loc));
+					}
+					data.set(pfx + "team-spawns." + i, list);
+				} else {
+					data.set(pfx + "team-spawns." + i, null);
+				}
+			}
 		}
 		
 		plugin.saveData();

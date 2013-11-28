@@ -42,6 +42,8 @@ public class ItemHandler {
 		addHammer();
 		addLandmine();
 		addWolf();
+		addGlue();
+		addLightning();
 	}
 	
 	/**
@@ -71,6 +73,37 @@ public class ItemHandler {
 		return is;
 	}
 	
+	/**
+	 * Add the Lightning-item
+	 * @param void
+	 * @return void
+	 */
+	public void addLightning() {
+		ItemStack is = new ItemStack(Material.FEATHER, 1);
+		ItemMeta im = is.getItemMeta();
+		im.setDisplayName(ChatColor.YELLOW + "Lightning Bolt");
+		is.setItemMeta(im);
+		this.items.add(is);
+	}
+	
+	/**
+	 * Add the Glue-item
+	 * @param void
+	 * @return void
+	 */
+	public void addGlue() {
+		ItemStack is = new ItemStack(Material.SLIME_BALL, 1);
+		ItemMeta im = is.getItemMeta();
+		im.setDisplayName(ChatColor.GREEN + "Glue");
+		is.setItemMeta(im);
+		this.items.add(is);
+	}
+	
+	/**
+	 * Add the Landmine-item
+	 * @param void
+	 * @return void
+	 */
 	public void addLandmine() {
 		ItemStack is = new ItemStack(Material.STONE_PLATE, 1);
 		ItemMeta im = is.getItemMeta();
@@ -234,7 +267,7 @@ public class ItemHandler {
 	 * @return void
 	 */
 	public void addHealthPotion() {
-		ItemStack is = new ItemStack(Material.POTION, 1, (short) 8229);
+		ItemStack is = new ItemStack(Material.POTION, 1, (short) 16421);
 		ItemMeta im = is.getItemMeta();
 		im.setDisplayName(ChatColor.LIGHT_PURPLE + "Instant Health");
 		is.setItemMeta(im);

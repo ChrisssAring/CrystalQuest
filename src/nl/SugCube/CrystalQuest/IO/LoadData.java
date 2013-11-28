@@ -66,6 +66,7 @@ public class LoadData {
 				a.setTeams(data.getInt(pfx + "teams"));
 				a.setMinPlayers(data.getInt(pfx + "min-players"));
 				a.setMaxPlayers(data.getInt(pfx + "max-players"));
+				a.setDoubleJump(data.getBoolean(pfx + "double-jump"));
 				
 				int count = 0;
 				Location[] loc = new Location[6];
@@ -85,6 +86,24 @@ public class LoadData {
 				}
 				for (String str : data.getStringList(pfx + "item-spawns")) {
 					a.addItemSpawn(SMeth.toLocation(str));
+				}
+				
+				try {
+					int i = 0;
+					Location[] locs = new Location[2];
+					for (String str : data.getStringList(pfx + "protection")) {
+						locs[i] = SMeth.toLocation(str);
+						i++;
+					}
+					a.setProtection(locs);
+				} catch (Exception exeption) { }
+				
+				for (int i = 0; i < 6; i++) {
+					if (data.isSet(pfx + "team-spawns." + i)) {
+						for (String str : data.getStringList(pfx + "team-spawns." + i)) {
+							a.getTeamSpawns().get(i).add(SMeth.toLocation(str));
+						}
+					}
 				}
 			}
 		} catch (Exception e) { }

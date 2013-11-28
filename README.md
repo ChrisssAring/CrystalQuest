@@ -1,4 +1,4 @@
-CrystalQuest Beta 0.1
+CrystalQuest Beta 0.2
 ====================================================
 A PvP-stylish minigame made by MrSugarCaney
 

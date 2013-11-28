@@ -23,7 +23,11 @@ import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Creeper;
+import org.bukkit.entity.EnderCrystal;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.ExperienceOrb;
+import org.bukkit.entity.Item;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
 import org.bukkit.inventory.Inventory;
@@ -62,6 +66,8 @@ public class Arena {
 	private boolean enabled;
 	private int afterCount;
 	private boolean isEndGame;
+	private Location[] protection;
+	private boolean doubleJump;
 	
 	private List<Wolf> gameWolfs;
 	private List<Creeper> gameCreepers;
@@ -73,6 +79,7 @@ public class Arena {
 	private HashMap<Player, Integer> playerTeams;
 	private HashMap<Entity, Location> crystalLocations;
 	private List<Block> gameBlocks;
+	private HashMap<Integer, List<Location>> teamSpawns;
 	
 	private Inventory teamMenu;
 	
@@ -109,7 +116,61 @@ public class Arena {
 		this.gameCreepers = new ArrayList<Creeper>();
 		this.gameBlocks = new ArrayList<Block>();
 		this.gameWolfs = new ArrayList<Wolf>();
+		this.protection = new Location[2];
+		this.teamSpawns = new HashMap<Integer, List<Location>>();
+		this.teamSpawns.put(0, new ArrayList<Location>());
+		this.teamSpawns.put(1, new ArrayList<Location>());
+		this.teamSpawns.put(2, new ArrayList<Location>());
+		this.teamSpawns.put(3, new ArrayList<Location>());
+		this.teamSpawns.put(4, new ArrayList<Location>());
+		this.teamSpawns.put(5, new ArrayList<Location>());
+		this.doubleJump = false;
 		initializeScoreboard();
+	}
+	
+	/**
+	 * Sets if the arena accepts double jumps
+	 * @param canDoubleJump (boolean) True to accept, False to decline.
+	 * @return void
+	 */
+	public void setDoubleJump(boolean canDoubleJump) {
+		this.doubleJump = canDoubleJump;
+	}
+	
+	/**
+	 * Gets if this map accepts double jumps
+	 * @param void
+	 * @return (boolean) True if accepted, false if not accepted.
+	 */
+	public boolean canDoubleJump() {
+		return this.doubleJump;
+	}
+	
+	/**
+	 * Gets the hashmap with the teamId bound to the list containing the spawnpoints
+	 * @param void
+	 * @return (HashMapLocationList)
+	 */
+	public HashMap<Integer, List<Location>> getTeamSpawns() {
+		return this.teamSpawns;
+	}
+	
+	/**
+	 * Sets the positions of the protection of the Arena
+	 * @param (Location[]) Index 1: pos1, Index 2: pos2.
+	 * @return void
+	 */
+	public void setProtection(Location[] locs) {
+		this.protection = locs;
+	}
+	
+	/**
+	 * Gets the positions of the protection of the Arena
+	 * @param void
+	 * @return (Location[]) Index 1: pos1, Index 2: pos2. Null if not set.
+	 */
+	public Location[] getProtection() {
+		return this.protection;
 	}
 	
 	/**
@@ -571,6 +632,17 @@ public class Arena {
 		for (Wolf w : this.getGameWolfs()) {
 			if (w != null) {
 				w.setHealth(0);
+			}
+		}
+		//Removes all items
+		if (this.getCrystalSpawns().size() > 0) {
+			for (Entity e : this.getCrystalSpawns().get(0).getWorld().getEntities()) {
+				if (e instanceof Item || e instanceof ExperienceOrb || e instanceof EnderCrystal ||
+						e instanceof LivingEntity) {
+					if (plugin.prot.isInProtectedArena(e.getLocation())) {
+						e.remove();
+					}
+				}
 			}
 		}
 		
@@ -1138,8 +1210,17 @@ public class Arena {
 		Random ran = new Random();
 		
 		for (Player p : this.getPlayers()) {
-			if (this.getPlayerSpawns().size() > 0) {
-				p.teleport(this.getPlayerSpawns().get(ran.nextInt(this.getPlayerSpawns().size())));
+			boolean isTeamSpawns = false;
+			for (int i = 0; i < this.getTeamCount(); i++) {
+				if (this.getTeamSpawns().get(i).size() > 0) {
+					isTeamSpawns = true;
+				}
+			}
+			if (isTeamSpawns) {
+				int team = this.getTeam(p);
+				p.teleport(this.getTeamSpawns().get(team).get(ran.nextInt(this.getTeamSpawns().get(team).size())));
+			} else {
+				p.teleport((this.getPlayerSpawns().get(ran.nextInt(this.getPlayerSpawns().size()))));
 			}
 		}
 	}

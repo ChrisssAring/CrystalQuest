@@ -26,10 +26,10 @@ public class Broadcast {
 				TAG + "Current version: " + plugin.getDescription().getVersion() + " (Up-to-date)\n" +
 				TAG + "Use " + ChatColor.LIGHT_PURPLE + "/cq help " + ChatColor.YELLOW + "to get a list of commands.");
 		} else {
-			UpdateChecker uc = new UpdateChecker(plugin, "http://dev.bukkit.org/bukkit-plugins/crystalquest/files.rss");
+			Update uc = new Update(69421, plugin.getDescription().getVersion());
 			String update = "";
 			
-			if (uc.updateAvaiable()) {
+			if (uc.query()) {
 				update = "(New version avaiable!)";
 			} else {
 				update = "(Up-to-date)";

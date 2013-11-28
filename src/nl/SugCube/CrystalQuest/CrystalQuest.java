@@ -8,6 +8,7 @@ import nl.SugCube.CrystalQuest.API.CrystalQuestAPI;
 import nl.SugCube.CrystalQuest.Game.Arena;
 import nl.SugCube.CrystalQuest.Game.ArenaManager;
 import nl.SugCube.CrystalQuest.Game.InventoryManager;
+import nl.SugCube.CrystalQuest.Game.Protection;
 import nl.SugCube.CrystalQuest.IO.LoadData;
 import nl.SugCube.CrystalQuest.IO.SaveData;
 import nl.SugCube.CrystalQuest.InventoryMenu.PickTeam;
@@ -44,6 +45,7 @@ public class CrystalQuest extends JavaPlugin {
 	public ItemHandler itemHandler = new ItemHandler(this);
 	public ParticleHandler particleHandler = new ParticleHandler(this);
 	
+	public Protection prot = new Protection(this);
 	public DeathMessages deathListener = new DeathMessages(this);
 	public EntityListener entityL = new EntityListener(this);
 	public InventoryListener inventoryL = new InventoryListener(this);
@@ -92,6 +94,7 @@ public class CrystalQuest extends JavaPlugin {
 		pm.registerEvents(ppiL, this);
 		pm.registerEvents(projL, this);
 		pm.registerEvents(deathListener, this);
+		pm.registerEvents(prot, this);
 		
 		/*
 		 * Registering Commands
@@ -114,7 +117,6 @@ public class CrystalQuest extends JavaPlugin {
 		 */
 		LoadData.loadArenas();		//ARENAS
 		LoadData.loadLobbySpawn();	//LOBBYSPAWN
-		LoadData.loadSigns();		//SIGNS
 		
 		/*
 		 * Pass plugin instance to the API
@@ -125,8 +127,8 @@ public class CrystalQuest extends JavaPlugin {
 		 * Check for updates
 		 */
 		if (this.getConfig().getBoolean("updates.check-for-updates")) {
-			UpdateChecker uc = new UpdateChecker(this, "http://dev.bukkit.org/bukkit-plugins/crystalquest/files.rss");
-			if (uc.updateAvaiable()) {
+			Update uc = new Update(69421 ,this.getDescription().getVersion());
+			if (uc.query()) {
 				Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "[CrystalQuest] <> A new version of CrystalQuest is " +
 						"avaiable! Get it at the BukkitDev page! <>");
 			} else {

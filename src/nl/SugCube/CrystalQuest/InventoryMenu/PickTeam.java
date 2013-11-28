@@ -6,6 +6,7 @@ import nl.SugCube.CrystalQuest.Game.Arena;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -31,17 +32,27 @@ public class PickTeam {
 	 * @param a (Arena) The arena the menu is used for.
 	 * @return void
 	 */
+	@SuppressWarnings("deprecation")
 	public void updateMenu(Arena a) {
 		Inventory inv = a.getTeamMenu();
 		inv.clear();
 		
-		for (int i : a.getSmallestTeams()) {
-			inv.addItem(this.getWool(a.getId(), i));
+		if (plugin.getConfig().getBoolean("arena.force-even-teams")) {
+			for (int i : a.getSmallestTeams()) {
+				inv.addItem(this.getWool(a.getId(), i));
+			}
+		} else {
+			for (int i = 0; i < a.getTeamCount(); i++) {
+				inv.addItem(this.getWool(a.getId(), i));
+			}
 		}
 		
 		ItemStack[] contents = inv.getContents();
 		contents[8] = getRandom(a.getId());
 		inv.setContents(contents);
+		for (HumanEntity hem : inv.getViewers()) {
+			((Player) hem).updateInventory();
+		}
 	}
 	
 	/**

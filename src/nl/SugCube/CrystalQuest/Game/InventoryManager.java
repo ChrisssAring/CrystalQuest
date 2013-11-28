@@ -89,10 +89,12 @@ public class InventoryManager {
 	 */
 	public void setClassInventory(Player player) {
 		player.getInventory().clear();
+		player.updateInventory();
 		
+		int count = 0;
 		if (!playerClass.containsKey(player)) {
 			boolean isNotOk = true;
-			while (isNotOk) {
+			while (isNotOk && count < 10000) {
 				Random ran = new Random();
 				Set<String> set = plugin.getConfig().getConfigurationSection("kit").getKeys(false);
 				List<String> list = new ArrayList<String>();
@@ -102,10 +104,12 @@ public class InventoryManager {
 				
 				int random = ran.nextInt(list.size());
 				String ranClass = list.get(random);
-				if (player.hasPermission("crystalquest.kit." + ranClass)) {
+				if (player.hasPermission("crystalquest.kit." + ranClass) || player.hasPermission("crystalquest.kit.*") ||
+						player.hasPermission("crystalquest.admin") || player.hasPermission("crystalquest.staff")) {
 					playerClass.put(player, ranClass);
 					isNotOk = false;
 				}
+				count++;
 			}
 		}
 		
