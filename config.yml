@@ -2,7 +2,7 @@ updates:
   check-for-updates: true
   show-admin: true
 arena:
-  countdown: 10
+  countdown: 30
   game-length: 600
   after-count: 15
   crystal-spawn-chance: 18
