@@ -1,6 +1,7 @@
 package nl.SugCube.CrystalQuest.Game;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -614,35 +615,47 @@ public class Arena {
 	 * @return void
 	 */
 	public void resetArena() {
-		//Removes all Crystals
-		for (Entity e : this.getGameCrystals()) {
-			e.remove();
-		}
+		
 		//Removes all potion-effects on players
-		for (Player p : this.getPlayers()) {
-			for (PotionEffect ef : p.getActivePotionEffects()) {
-				p.removePotionEffect(ef.getType());
+		if (this.getPlayers().size() > 0) {
+			for (Player p : this.getPlayers()) {
+				Collection<PotionEffect> eff = p.getActivePotionEffects();
+				for (PotionEffect ef : eff) {
+					p.removePotionEffect(ef.getType());
+				}
 			}
 		}
 		//Removes all blocks placed in-game
-		for (Block b : this.getGameBlocks()) {
-			b.setType(Material.AIR);
+		if (this.getGameBlocks().size() > 0) {
+			List<Block> toRemove = new ArrayList<Block>();
+			for (Block b : this.getGameBlocks()) {
+				toRemove.add(b);
+			}
+			for (Block b : toRemove) {
+				b.setType(Material.AIR);
+			}
 		}
 		//Removs all wolfs
-		for (Wolf w : this.getGameWolfs()) {
-			if (w != null) {
-				w.setHealth(0);
+		if (this.getGameWolfs().size() > 0) {
+			for (Wolf w : this.getGameWolfs()) {
+				if (w != null) {
+					w.setHealth(0);
+				}
 			}
 		}
 		//Removes all items
 		if (this.getCrystalSpawns().size() > 0) {
+			List<Entity> toRemove = new ArrayList<Entity>();
 			for (Entity e : this.getCrystalSpawns().get(0).getWorld().getEntities()) {
-				if (e instanceof Item || e instanceof ExperienceOrb || e instanceof EnderCrystal ||
-						e instanceof LivingEntity) {
+				if ((e instanceof Item || e instanceof ExperienceOrb || e instanceof EnderCrystal ||
+						e instanceof LivingEntity) && !(e instanceof Player)) {
 					if (plugin.prot.isInProtectedArena(e.getLocation())) {
-						e.remove();
+						toRemove.add(e);
 					}
 				}
+			}
+			for (Entity e : toRemove) {
+				e.remove();
 			}
 		}
 		
@@ -655,10 +668,10 @@ public class Arena {
 		this.isEndGame = false;
 		this.crystalLocations.clear();
 		this.gameBlocks.clear();
-		removePlayers();
 		initializeScoreboard();
 		plugin.signHandler.updateSigns();
 		this.gameWolfs.clear();
+		removePlayers();
 	}
 	
 	/**

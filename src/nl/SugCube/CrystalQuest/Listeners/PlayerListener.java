@@ -100,8 +100,8 @@ public class PlayerListener implements Listener {
 				Update uc = new Update(69421, plugin.getDescription().getVersion());
 				if (uc.query()) {
 					if (e.getPlayer().hasPermission("crystalquest.admin")) {
-						e.getPlayer().sendMessage(Broadcast.TAG + "A new version of CrystalQuest is available! Get" +
-								"it at the BukkitDev page!");
+						e.getPlayer().sendMessage(Broadcast.TAG + "A new version of CrystalQuest is available!");
+						e.getPlayer().sendMessage(Broadcast.TAG + "Get it at the BukkitDev-page!");
 					}
 				}
 			}

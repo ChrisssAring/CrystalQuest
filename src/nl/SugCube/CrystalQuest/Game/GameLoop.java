@@ -129,25 +129,27 @@ public class GameLoop implements Runnable {
 				 */
 				if (a.isEndGame()) {
 					if (a.getAfterCount() <= 0) {
-						a.resetArena();
 						a.setEndGame(false);
+						a.resetArena();
 					} else { 
 						a.setAfterCount(a.getAfterCount() - 1);
 						
 						for (Player p : a.getPlayers()) {
-							if (a.getTeam(p) == Teams.getTeamIdFromNAME(this.winningTeam)) {
-								Firework f = p.getLocation().getWorld().spawn(p.getLocation().add(0, 2, 0), Firework.class);
-								FireworkMeta fm = f.getFireworkMeta();
-								fm.setPower(1);
-								FireworkEffect fe = FireworkEffect.builder()
-														.flicker(true)
-														.withColor(plugin.im.getTeamColour(a.getTeam(p)))
-														.with(Type.STAR)
-														.build();
-								fm.clearEffects();
-								fm.addEffect(fe);
-								f.setFireworkMeta(fm);
-							}
+							try {
+								if (a.getTeam(p) == Teams.getTeamIdFromNAME(this.winningTeam)) {
+									Firework f = p.getLocation().getWorld().spawn(p.getLocation().add(0, 2, 0), Firework.class);
+									FireworkMeta fm = f.getFireworkMeta();
+									fm.setPower(1);
+									FireworkEffect fe = FireworkEffect.builder()
+															.flicker(true)
+															.withColor(plugin.im.getTeamColour(a.getTeam(p)))
+															.with(Type.STAR)
+															.build();
+									fm.clearEffects();
+									fm.addEffect(fe);
+									f.setFireworkMeta(fm);
+								}
+							} catch (Exception e) { e.printStackTrace(); }
 						}
 					}
 				}
