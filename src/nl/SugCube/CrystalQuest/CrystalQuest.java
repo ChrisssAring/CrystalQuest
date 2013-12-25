@@ -5,8 +5,10 @@ import java.io.InputStream;
 import java.util.logging.Level;
 
 import nl.SugCube.CrystalQuest.API.CrystalQuestAPI;
+import nl.SugCube.CrystalQuest.Economy.Economy;
 import nl.SugCube.CrystalQuest.Game.Arena;
 import nl.SugCube.CrystalQuest.Game.ArenaManager;
+import nl.SugCube.CrystalQuest.Game.Classes;
 import nl.SugCube.CrystalQuest.Game.InventoryManager;
 import nl.SugCube.CrystalQuest.Game.Protection;
 import nl.SugCube.CrystalQuest.IO.LoadData;
@@ -32,30 +34,32 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class CrystalQuest extends JavaPlugin {
 	
-	public ArenaManager am = new ArenaManager(this);
-	public PickTeam menuPT = new PickTeam(this);
-	public InventoryManager im = new InventoryManager(this);
-	public StringHandler sh = new StringHandler(this);
-	public SelectClass menuSC = new SelectClass(this);
-	public CrystalQuestCommandExecutor commandExecutor = new CrystalQuestCommandExecutor(this);
-	public Broadcast broadcast = new Broadcast(this);
-	public SaveData saveData = new SaveData(this);
-	public LoadData loadData = new LoadData(this);
-	public SignHandler signHandler = new SignHandler(this, am);
-	public ItemHandler itemHandler = new ItemHandler(this);
-	public ParticleHandler particleHandler = new ParticleHandler(this);
+	public ArenaManager am;
+	public PickTeam menuPT;
+	public InventoryManager im;
+	public StringHandler sh;
+	public SelectClass menuSC;
+	public CrystalQuestCommandExecutor commandExecutor;
+	public Broadcast broadcast;
+	public SaveData saveData;
+	public LoadData loadData;
+	public SignHandler signHandler;
+	public ItemHandler itemHandler;
+	public ParticleHandler particleHandler;
+	public Classes classes;
+	public Economy economy;
 	
-	public Protection prot = new Protection(this);
-	public DeathMessages deathListener = new DeathMessages(this);
-	public EntityListener entityL = new EntityListener(this);
-	public InventoryListener inventoryL = new InventoryListener(this);
-	public PlayerListener playerL = new PlayerListener(this);
-	public SignListener signL = new SignListener(this);
-	public ItemListener ppiL = new ItemListener(this);
-	public ProjectileListener projL = new ProjectileListener(this);	
+	public PluginManager pm;
+	public Protection prot;
+	public DeathMessages deathListener;
+	public EntityListener entityL;
+	public InventoryListener inventoryL;
+	public PlayerListener playerL;
+	public SignListener signL;
+	public ItemListener ppiL;
+	public ProjectileListener projL;
 	
 	public void onEnable() {
-
 		/*
 		 * Load config.yml and data.yml
 		 */
@@ -69,7 +73,7 @@ public class CrystalQuest extends JavaPlugin {
 				this.getLogger().info("Failed to generate config.yml!");
 			}
 		}
-		
+
 		File df = new File(getDataFolder() + File.separator + "data.yml");
 		if (!df.exists()) {
 			try {
@@ -81,8 +85,41 @@ public class CrystalQuest extends JavaPlugin {
 			}
 		}
 		
+		File lf = new File(getDataFolder() + File.separator + "lang.yml");
+		if (!lf.exists()) {
+			try {
+				getLang().options().copyDefaults(true);
+				saveLang();
+				this.getLogger().info("Generated lang.yml succesfully!");
+			} catch (Exception e) {
+				this.getLogger().info("Failed to generate lang.yml!");
+			}
+		}
+
+		am = new ArenaManager(this);
+		menuPT = new PickTeam(this);
+		im = new InventoryManager(this);
+		sh = new StringHandler(this);
+		menuSC = new SelectClass(this);
+		commandExecutor = new CrystalQuestCommandExecutor(this);
+		broadcast = new Broadcast(this);
+		saveData = new SaveData(this);
+		loadData = new LoadData(this);
+		signHandler = new SignHandler(this, am);
+		itemHandler = new ItemHandler(this);
+		particleHandler = new ParticleHandler(this);
+		classes = new Classes(this);
+		prot = new Protection(this);
+		deathListener = new DeathMessages(this);
+		entityL = new EntityListener(this);
+		inventoryL = new InventoryListener(this);
+		playerL = new PlayerListener(this);
+		signL = new SignListener(this);
+		ppiL = new ItemListener(this);
+		projL = new ProjectileListener(this);
 		PluginDescriptionFile pdfFile = this.getDescription();
-		PluginManager pm = getServer().getPluginManager();
+		this.pm = getServer().getPluginManager();
+		this.economy = new Economy(this, pm);
 		
 		/*
 		 * Registering Events:
@@ -95,6 +132,7 @@ public class CrystalQuest extends JavaPlugin {
 		pm.registerEvents(projL, this);
 		pm.registerEvents(deathListener, this);
 		pm.registerEvents(prot, this);
+		this.economy.registerEvents(pm);
 		
 		/*
 		 * Registering Commands
@@ -111,6 +149,7 @@ public class CrystalQuest extends JavaPlugin {
 		am.registerCrystalSpawningSequence();
 		am.registerItemSpawningSequence();
 		Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new ParticleHandler(this), 1L, 1L);
+		signHandler.startSignUpdater(15);
 		
 		/*
 		 * Loading Data
@@ -144,6 +183,9 @@ public class CrystalQuest extends JavaPlugin {
 		}
 		
 		LoadData.loadSigns();		//Load the lobby-signs
+		
+		Broadcast.setMessages();	
+		itemHandler.addAllItems();
 		
 	}
 	
@@ -218,6 +260,58 @@ public class CrystalQuest extends JavaPlugin {
 	        getData().save(dataFile);
 	    } catch (Exception ex) {
 	        this.getLogger().log(Level.SEVERE, "Could not save config to " + dataFile, ex);
+	    }
+	}
+	
+	/*
+	 * Use a file (language.yml) to store localized messages
+	 */
+	private FileConfiguration lang = null;
+	private File langFile = null;
+	
+	/**
+	 * Reloads the lang-file
+	 * @param void
+	 * @return void
+	 */
+	public void reloadLang() {
+	    if (langFile == null) {
+	    	langFile = new File(getDataFolder(), "lang.yml");
+	    }
+	    lang = YamlConfiguration.loadConfiguration(langFile);
+	 
+	    InputStream defStream = this.getResource("lang.yml");
+	    if (defStream != null) {
+	        YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defStream);
+	        lang.setDefaults(defConfig);
+	    }
+	}
+	
+	/**
+	 * Gets the lang.yml
+	 * @param void
+	 * @return (FileConfiguration) lang.yml
+	 */
+	public FileConfiguration getLang() {
+	    if (lang == null) {
+	        this.reloadLang();
+	    }
+	    return lang;
+	}
+	
+	/**
+	 * Saves the lang.yml
+	 * @param void
+	 * @return void
+	 */
+	public void saveLang() {
+	    if (lang == null || langFile == null) {
+	    	return;
+	    }
+	    try {
+	        getLang().save(langFile);
+	    } catch (Exception ex) {
+	        this.getLogger().log(Level.SEVERE, "Could not save " + langFile, ex);
 	    }
 	}
 	

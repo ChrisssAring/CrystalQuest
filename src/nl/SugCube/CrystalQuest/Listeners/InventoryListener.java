@@ -6,8 +6,8 @@ import nl.SugCube.CrystalQuest.Broadcast;
 import nl.SugCube.CrystalQuest.CrystalQuest;
 import nl.SugCube.CrystalQuest.Teams;
 import nl.SugCube.CrystalQuest.Game.Arena;
+import nl.SugCube.CrystalQuest.Game.Classes;
 
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -22,13 +22,12 @@ public class InventoryListener implements Listener {
 	}
 	
 	@EventHandler
-	public void onInventoryClick(InventoryClickEvent e) {
-		
+	public void onInventoryClick(InventoryClickEvent e) {		
 		if (plugin.am.isInGame((Player) e.getWhoClicked())) {
 			e.setCancelled(true);
 		}
 		
-		if (e.getInventory().getName() == "Pick Team") {
+		if (e.getInventory().getName().contains("Pick Team: ")) {
 			if (e.getCurrentItem() != null) {
 				if (e.getCurrentItem().getAmount() > 0) {
 					try {
@@ -36,7 +35,7 @@ public class InventoryListener implements Listener {
 						Player player = (Player) e.getWhoClicked();
 						player.closeInventory();
 						
-						Arena a = plugin.am.getArena(e.getCurrentItem().getAmount() - 1);
+						Arena a = plugin.am.getArena(e.getInventory().getName().replace("Pick Team: ", ""));
 						int teamId = 0;
 						String displayName = "";
 						
@@ -58,6 +57,10 @@ public class InventoryListener implements Listener {
 							teamId = 4;
 						} else if (displayName.contains(Teams.MAGENTA_NAME)) {
 							teamId = 5;
+						} else if (displayName.contains(Teams.WHITE_NAME)) {
+							teamId = 6;
+						} else if (displayName.contains(Teams.BLACK_NAME)) {
+							teamId = 7;
 						} else if (displayName.contains("Random Team")) {
 							try {
 								if (a.getSmallestTeams().size() > 0) {
@@ -73,7 +76,7 @@ public class InventoryListener implements Listener {
 							} catch (Exception exep) { exep.printStackTrace(); }
 						}
 						
-						a.addPlayer(player, teamId);
+						a.addPlayer(player, teamId, false);
 					} catch (Exception exeption) { exeption.printStackTrace(); }
 				}
 			}
@@ -89,18 +92,16 @@ public class InventoryListener implements Listener {
 					if (e.getCurrentItem().getItemMeta().hasDisplayName()) {
 						if (e.getCurrentItem().getItemMeta().getDisplayName().equalsIgnoreCase("Random Class")) {
 							plugin.im.playerClass.remove(player);
-							player.sendMessage(Broadcast.TAG + "You have chosen a random class!");
+							player.sendMessage(Broadcast.TAG + Broadcast.get("arena.random-class"));
 						} else {
 							String techName = plugin.menuSC.getTechnicalClassName(
 									e.getCurrentItem().getItemMeta().getDisplayName());
-							if (player.hasPermission("crystalquest.admin") || player.hasPermission("crystalquest.staff") ||
-									player.hasPermission("crystalquest.kit." + techName) ||
-									player.hasPermission("crystalquest.kit.*")) {
+							if (Classes.hasPermission(player, techName)) {
 								plugin.im.setPlayerClass(player, techName);
-								player.sendMessage(Broadcast.TAG + "You have chosen the " + e.getCurrentItem().getItemMeta()
-										.getDisplayName() + ChatColor.YELLOW + " class!");
+								player.sendMessage(Broadcast.TAG + Broadcast.get("arena.chosen-class")
+										.replace("%class%", e.getCurrentItem().getItemMeta().getDisplayName()));
 							} else {
-								player.sendMessage(ChatColor.RED + "[!!] Sorry, you don't have permision to select this kit!");
+								player.sendMessage(Broadcast.get("arena.no-perm-class"));
 							}
 						}
 					} else {

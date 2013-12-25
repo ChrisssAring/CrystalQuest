@@ -2,7 +2,9 @@ package nl.SugCube.CrystalQuest.Listeners;
 
 import java.util.Random;
 
+import nl.SugCube.CrystalQuest.Broadcast;
 import nl.SugCube.CrystalQuest.CrystalQuest;
+import nl.SugCube.CrystalQuest.Economy.Multipliers;
 import nl.SugCube.CrystalQuest.Game.Arena;
 import nl.SugCube.CrystalQuest.Game.ArenaManager;
 
@@ -35,7 +37,9 @@ public class DeathMessages implements Listener {
 			Random ran = new Random();
 			int crystals = ran.nextInt(5) + 2;
 			for (int i = 0; i < crystals; i++) {
-				p.getWorld().dropItem(p.getLocation(), plugin.itemHandler.getItemByName("Crystal Shard"));
+				if (ran.nextInt(3) > 0) {
+					p.getWorld().dropItem(p.getLocation(), plugin.itemHandler.getItemByName(Broadcast.get("items.crystal-shard")));
+				}
 				plugin.getArenaManager().getArena(p).addScore(plugin.getArenaManager().getTeam(p), -1);
 			}
 	
@@ -70,6 +74,22 @@ public class DeathMessages implements Listener {
 								Player shooter = (Player) p.getKiller();
 								if (shooter != null) {
 									a.sendDeathMessage(p, shooter, "shot");
+									
+									double chance = Multipliers.getMultiplier("blood",
+											plugin.economy.getLevel(p, "blood", "crystals"), false);
+									int multiplier = 1;
+									
+									if (ran.nextInt(100) <= chance * 100 && chance != 0) {
+										multiplier = 2;
+									}
+									
+									//Adds crystals to their balance
+									int money = (int) (1 * plugin.getConfig().getDouble("shop.crystal-multiplier"));
+									plugin.economy.getBalance().addCrystals(shooter, money * multiplier, false);
+									String message = plugin.economy.getCoinMessage(shooter, money * multiplier);
+									if (message != null) {
+										shooter.sendMessage(message);
+									}
 								}
 							}
 						} else if (cause == DamageCause.SUFFOCATION) {
@@ -87,6 +107,22 @@ public class DeathMessages implements Listener {
 						} else if (cause == DamageCause.ENTITY_ATTACK) {
 							if (len instanceof Player) {
 								a.sendDeathMessage(p, (Player) len);
+								
+								double chance = Multipliers.getMultiplier("blood",
+										plugin.economy.getLevel(p, "blood", "crystals"), false);
+								int multiplier = 1;
+								
+								if (ran.nextInt(100) <= chance * 100 && chance != 0) {
+									multiplier = 2;
+								}
+								
+								//Adds crystals to their balance
+								int money = (int) (1 * plugin.getConfig().getDouble("shop.crystal-multiplier"));
+								plugin.economy.getBalance().addCrystals((Player) len, money * multiplier, false);
+								String message = plugin.economy.getCoinMessage((Player) len, money * multiplier);
+								if (message != null) {
+									((Player) len).sendMessage(message);
+								}
 							} else {
 								a.sendDeathMessage(p, " has been slain");
 							}

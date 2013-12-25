@@ -13,6 +13,8 @@ public class Teams {
 	public static final OfflinePlayer RED = Bukkit.getOfflinePlayer(ChatColor.RED + "Team Red");
 	public static final OfflinePlayer BLUE = Bukkit.getOfflinePlayer(ChatColor.AQUA + "Team Blue");
 	public static final OfflinePlayer MAGENTA = Bukkit.getOfflinePlayer(ChatColor.LIGHT_PURPLE + "Team Magenta");
+	public static final OfflinePlayer WHITE = Bukkit.getOfflinePlayer(ChatColor.WHITE + "Team White");
+	public static final OfflinePlayer BLACK = Bukkit.getOfflinePlayer(ChatColor.DARK_GRAY + "Team Black");
 	
 	public static final String GREEN_NAME = ChatColor.GREEN + "Team Green";
 	public static final String ORANGE_NAME = ChatColor.GOLD + "Team Orange";
@@ -20,15 +22,43 @@ public class Teams {
 	public static final String RED_NAME = ChatColor.RED + "Team Red";
 	public static final String BLUE_NAME = ChatColor.AQUA + "Team Blue";
 	public static final String MAGENTA_NAME = ChatColor.LIGHT_PURPLE + "Team Magenta";
+	public static final String WHITE_NAME = ChatColor.WHITE + "Team White";
+	public static final String BLACK_NAME = ChatColor.DARK_GRAY + "Team Black";
 	
+	/**
+	 * Gets the team-id matching the wool colour.
+	 * @param dataValue (short) The datavalue of the wool.
+	 * @return (int) The ID of the corresponding team.
+	 */
+	public static int getTeamFromDataValue(short dataValue) {
+		switch (dataValue) {
+		case 5: return 0;
+		case 1: return 1;
+		case 4: return 2;
+		case 14: return 3;
+		case 3: return 4;
+		case 2: return 5;
+		case 0: return 6;
+		case 15: return 7;
+		default: return -1;
+		}
+	}
+	
+	/**
+	 * Gets the team-id matching the dye colour.
+	 * @param color (DyeColor) The colour you want to check for.
+	 * @return (int) The ID of the corresponding team.
+	 */
 	public static int getDyeColourTeam(DyeColor color) {
-		DyeColor[] colors = new DyeColor[6];
+		DyeColor[] colors = new DyeColor[8];
 		colors[0] = (DyeColor.LIME);
 		colors[1] = (DyeColor.ORANGE);
 		colors[2] = (DyeColor.YELLOW);
 		colors[3] = (DyeColor.RED);
 		colors[4] = (DyeColor.LIGHT_BLUE);
 		colors[5] = (DyeColor.MAGENTA);
+		colors[6] = (DyeColor.WHITE);
+		colors[7] = (DyeColor.BLACK);
 		int count = 0;
 		for (DyeColor c : colors) {
 			if (c == color) {
@@ -40,6 +70,11 @@ public class Teams {
 		return 1;
 	}
 	
+	/**
+	 * Gets the dye colour matching the team-id
+	 * @param teamId (int) The ID of the team.
+	 * @return (DyeColor) The corresponding DyeColor.
+	 */
 	public static DyeColor getTeamDyeColour(int teamId) {
 		DyeColor colour = null;
 		switch (teamId) {
@@ -49,10 +84,17 @@ public class Teams {
 		case 3: colour = DyeColor.RED; break;
 		case 4: colour = DyeColor.LIGHT_BLUE; break;
 		case 5: colour = DyeColor.MAGENTA; break;
+		case 6: colour = DyeColor.WHITE; break;
+		case 7: colour = DyeColor.BLACK; break;
 		}
 		return colour;
 	}
 	
+	/**
+	 * Get the ChatColor matching the team-id
+	 * @param teamId (int) The ID of the team.
+	 * @return (ChatColor) The corresponding ChatColor.
+	 */
 	public static ChatColor getTeamChatColour(int teamId) {
 		ChatColor colour = null;
 		switch (teamId) {
@@ -62,10 +104,17 @@ public class Teams {
 		case 3: colour = ChatColor.RED; break;
 		case 4: colour = ChatColor.AQUA; break;
 		case 5: colour = ChatColor.LIGHT_PURPLE; break;
+		case 6: colour = ChatColor.WHITE; break;
+		case 7: colour = ChatColor.DARK_GRAY; break;
 		}
 		return colour;
 	}
 	
+	/**
+	 * Get the team-id with the matching name (including colours).
+	 * @param name (String) The name of the team.
+	 * @return (int) The corresponding team-id.
+	 */
 	public static int getTeamIdFromNAME(String name) {
 		try {
 			int i = Integer.parseInt(name) - 1;
@@ -81,12 +130,21 @@ public class Teams {
 				return 3;
 			} else if (name == BLUE_NAME) {
 				return 4;
-			} else {
+			} else if (name == MAGENTA_NAME) {
 				return 5;
+			} else if (name == WHITE_NAME) {
+				return 6;
+			} else {
+				return 7;
 			}
 		}
 	}
 	
+	/**
+	 * Get the team-id of the matching team-name (the colour).
+	 * @param name (String) The colour of the team.
+	 * @return (int) The corresponding team-id.
+	 */
 	public static int getTeamId(String name) {
 		try {
 			int i = Integer.parseInt(name) - 1;
@@ -99,12 +157,19 @@ public class Teams {
 			case "red": return 3;
 			case "blue": return 4;
 			case "magenta": return 5;
+			case "white": return 6;
+			case "black": return 7;
 			default:
 				return -1;
 			}
 		}
 	}
 	
+	/**
+	 * Get the name of the team matching the team-id.
+	 * @param teamId (int) The ID of the team.
+	 * @return (String) The name of the corresponding team.
+	 */
 	public static String getTeamNameById(int teamId) {
 		switch (teamId) {
 		case 0: return GREEN_NAME;
@@ -113,6 +178,8 @@ public class Teams {
 		case 3: return RED_NAME;
 		case 4: return BLUE_NAME;
 		case 5: return MAGENTA_NAME;
+		case 6: return WHITE_NAME;
+		case 7: return BLACK_NAME;
 		default:
 			return null;
 		}

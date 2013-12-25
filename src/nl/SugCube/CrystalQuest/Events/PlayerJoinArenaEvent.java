@@ -14,9 +14,16 @@ public class PlayerJoinArenaEvent extends Event implements Cancellable {
 	private boolean cancelled;
 	private Player player;
 	private Arena arena; 
+	private boolean spectate;
+
+	/** 
+	 * @return True if the player is spectating, false if not
+	 */
+	public boolean isSpectating() {
+		return this.spectate;
+	}
 	
 	/**
-	 * @param void
 	 * @return Get the arena the player joined
 	 */
 	public Arena getArena() {
@@ -24,16 +31,16 @@ public class PlayerJoinArenaEvent extends Event implements Cancellable {
 	}
 	
 	/**
-	 * @param void
 	 * @return The player who joined the arena
 	 */
 	public Player getPlayer() {
 		return this.player;
 	}
 	
-	public PlayerJoinArenaEvent(Player p, Arena a) {
+	public PlayerJoinArenaEvent(Player p, Arena a, boolean s) {
 		this.player = p;
 		this.arena = a;
+		this.spectate = s;
 	}
 	
 	public HandlerList getHandlers() {

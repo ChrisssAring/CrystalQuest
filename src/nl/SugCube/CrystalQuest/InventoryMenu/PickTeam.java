@@ -1,5 +1,6 @@
 package nl.SugCube.CrystalQuest.InventoryMenu;
 
+import nl.SugCube.CrystalQuest.Broadcast;
 import nl.SugCube.CrystalQuest.CrystalQuest;
 import nl.SugCube.CrystalQuest.Teams;
 import nl.SugCube.CrystalQuest.Game.Arena;
@@ -50,6 +51,7 @@ public class PickTeam {
 		ItemStack[] contents = inv.getContents();
 		contents[8] = getRandom(a.getId());
 		inv.setContents(contents);
+		
 		for (HumanEntity hem : inv.getViewers()) {
 			((Player) hem).updateInventory();
 		}
@@ -71,9 +73,9 @@ public class PickTeam {
 	 * @return (ItemStack) The Random-team item
 	 */
 	public ItemStack getRandom(int arenaId) {
-		ItemStack is = new ItemStack(Material.REDSTONE, arenaId + 1);
+		ItemStack is = new ItemStack(Material.REDSTONE, 1);
 		ItemMeta im = is.getItemMeta();
-		im.setDisplayName("Join Random Team");
+		im.setDisplayName(Broadcast.get("menu.random-team"));
 		is.setItemMeta(im);
 		return is;
 	}
@@ -94,18 +96,22 @@ public class PickTeam {
 		case 3: damageValue = 14; break;
 		case 4: damageValue = 3; break;
 		case 5: damageValue = 2; break;
+		case 6: damageValue = 0; break;
+		case 7: damageValue = 15; break;
 		}
 		
-		ItemStack is = new ItemStack(Material.WOOL, arenaId + 1, damageValue);
+		ItemStack is = new ItemStack(Material.WOOL, 1, damageValue);
 		ItemMeta im = is.getItemMeta();
 		
 		switch (damageValue) {
-		case 5: im.setDisplayName("Join " + Teams.GREEN_NAME); break;
-		case 1: im.setDisplayName("Join " + Teams.ORANGE_NAME); break;
-		case 4: im.setDisplayName("Join " + Teams.YELLOW_NAME); break;
-		case 14: im.setDisplayName("Join " + Teams.RED_NAME); break;
-		case 3: im.setDisplayName("Join " + Teams.BLUE_NAME); break;
-		case 2: im.setDisplayName("Join " + Teams.MAGENTA_NAME); break;
+		case 5: im.setDisplayName(Broadcast.get("menu.join") + Teams.GREEN_NAME); break;
+		case 1: im.setDisplayName(Broadcast.get("menu.join") + Teams.ORANGE_NAME); break;
+		case 4: im.setDisplayName(Broadcast.get("menu.join") + Teams.YELLOW_NAME); break;
+		case 14: im.setDisplayName(Broadcast.get("menu.join") + Teams.RED_NAME); break;
+		case 3: im.setDisplayName(Broadcast.get("menu.join") + Teams.BLUE_NAME); break;
+		case 2: im.setDisplayName(Broadcast.get("menu.join") + Teams.MAGENTA_NAME); break;
+		case 0: im.setDisplayName(Broadcast.get("menu.join") + Teams.WHITE_NAME); break;
+		case 15: im.setDisplayName(Broadcast.get("menu.join") + Teams.BLACK_NAME); break;
 		}
 		
 		is.setItemMeta(im);

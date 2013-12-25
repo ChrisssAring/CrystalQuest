@@ -69,7 +69,7 @@ public class LoadData {
 				a.setDoubleJump(data.getBoolean(pfx + "double-jump"));
 				
 				int count = 0;
-				Location[] loc = new Location[6];
+				Location[] loc = new Location[8];
 				for (String str : data.getStringList(pfx + "team-lobby")) {
 					loc[count] = SMeth.toLocation(str);
 					count++;
@@ -98,7 +98,7 @@ public class LoadData {
 					a.setProtection(locs);
 				} catch (Exception exeption) { }
 				
-				for (int i = 0; i < 6; i++) {
+				for (int i = 0; i < 8; i++) {
 					if (data.isSet(pfx + "team-spawns." + i)) {
 						for (String str : data.getStringList(pfx + "team-spawns." + i)) {
 							a.getTeamSpawns().get(i).add(SMeth.toLocation(str));

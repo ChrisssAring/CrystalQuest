@@ -3,7 +3,6 @@ package nl.SugCube.CrystalQuest.Game;
 import nl.SugCube.CrystalQuest.Broadcast;
 import nl.SugCube.CrystalQuest.CrystalQuest;
 
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -15,7 +14,6 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockIgniteEvent;
-import org.bukkit.event.block.BlockIgniteEvent.IgniteCause;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
@@ -39,7 +37,7 @@ public class Protection implements Listener {
 	/**
 	 * Checks if the given location is protected
 	 * @param loc (Location) The location to check for
-	 * @return (booean) True if within, false if not
+	 * @return (boolean) True if within, false if not
 	 */
 	public boolean isInProtectedArena(Location loc) {
 		for (Arena a : am.getArenas()) {
@@ -125,9 +123,7 @@ public class Protection implements Listener {
 	@EventHandler
 	public void onBlockIgnite(BlockIgniteEvent e) {
 		if (isInProtectedArena(e.getBlock().getLocation())) {
-			if (e.getCause() == IgniteCause.LIGHTNING) {
-				e.setCancelled(true);
-			}
+			e.setCancelled(true);
 		}
 	}
 	
@@ -149,15 +145,17 @@ public class Protection implements Listener {
 					if (meta.hasDisplayName()) {
 						if (meta.getDisplayName().contains(Broadcast.TAG + "Wand")) {
 							if (e.getAction() == Action.LEFT_CLICK_BLOCK) {
-								this.pos1 = e.getClickedBlock().getLocation();
-								p.sendMessage(Broadcast.TAG + "Set Posiotion 1 to " + ChatColor.GRAY + this.pos1.getX() +
-										", " + this.pos1.getY() + ", " + this.pos1.getZ());
-								e.setCancelled(true);
-							} else if (e.getAction() == Action.RIGHT_CLICK_BLOCK) {
-								this.pos2 = e.getClickedBlock().getLocation();
-								p.sendMessage(Broadcast.TAG + "Set Posiotion 2 to " + ChatColor.GRAY + this.pos2.getX() +
-										", " + this.pos2.getY() + ", " + this.pos2.getZ());
-								e.setCancelled(true);
+								this.pos1 = p.getLocation();
+								p.sendMessage(Broadcast.get("commands.pos-set")
+										.replace("%pos%", "1")
+										.replace("%coords%", plugin.prot.pos1.getX() + ", " + plugin.prot.pos1.getY() +
+												", " + plugin.prot.pos1.getX()));
+							} else {
+								this.pos2 = p.getLocation();
+								p.sendMessage(Broadcast.get("commands.pos-set")
+										.replace("%pos%", "2")
+										.replace("%coords%", plugin.prot.pos2.getX() + ", " + plugin.prot.pos2.getY() +
+												", " + plugin.prot.pos2.getX()));
 							}
 						}
 					}

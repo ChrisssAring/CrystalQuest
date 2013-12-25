@@ -104,8 +104,7 @@ public class InventoryManager {
 				
 				int random = ran.nextInt(list.size());
 				String ranClass = list.get(random);
-				if (player.hasPermission("crystalquest.kit." + ranClass) || player.hasPermission("crystalquest.kit.*") ||
-						player.hasPermission("crystalquest.admin") || player.hasPermission("crystalquest.staff")) {
+				if (Classes.hasPermission(player, ranClass)) {
 					playerClass.put(player, ranClass);
 					isNotOk = false;
 				}
@@ -171,6 +170,7 @@ public class InventoryManager {
 		}
 		
 		player.updateInventory();
+		
 	}
 	
 	/**
@@ -255,6 +255,8 @@ public class InventoryManager {
 		case 3: return Color.fromRGB(255, 0, 0);
 		case 4: return Color.fromRGB(0, 255, 255);
 		case 5: return Color.fromRGB(255, 0, 255);
+		case 6: return Color.WHITE;
+		case 7: return Color.BLACK;
 		default: return null;
 		}
 	}

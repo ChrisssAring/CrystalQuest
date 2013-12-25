@@ -11,28 +11,28 @@ public class Help {
 		if (s.hasPermission("crystalquest.admin")) {
 			s.sendMessage(Broadcast.HELP + ChatColor.YELLOW + "<>--------------" + ChatColor.LIGHT_PURPLE + 
 					"SETUP-HELP" + ChatColor.YELLOW + "--------------<>");
-			s.sendMessage(Broadcast.HELP + "/cq setlobby" + ChatColor.YELLOW + " Set the main Lobbyspawn");
-			s.sendMessage(Broadcast.HELP + "/cq createarena" + ChatColor.YELLOW + " Create a new Arena");
-			s.sendMessage(Broadcast.HELP + "/cq setname <arena> <name>" + ChatColor.YELLOW + " Give a name to an Arena");
-			s.sendMessage(Broadcast.HELP + "/cq teamlobby <arena> <teamID>" + ChatColor.YELLOW + " Set the Team's Lobby");
+			s.sendMessage(Broadcast.HELP + "/cq setlobby" + ChatColor.YELLOW + " " + Broadcast.get("help.setlobby"));
+			s.sendMessage(Broadcast.HELP + "/cq createarena" + ChatColor.YELLOW + " " + Broadcast.get("help.createarena"));
+			s.sendMessage(Broadcast.HELP + "/cq setname <arena> <name>" + ChatColor.YELLOW + " " + Broadcast.get("help.setname"));
+			s.sendMessage(Broadcast.HELP + "/cq teamlobby <arena> <teamID>" + ChatColor.YELLOW + " " + Broadcast.get("help.teamlobby"));
 			s.sendMessage(Broadcast.HELP + "/cq setteams <arena> <amount>" + ChatColor.YELLOW +
-					" Set the amount of teams in an Arena");
+					" " + Broadcast.get("help.setteams"));
 			s.sendMessage(Broadcast.HELP + "/cq minplayers <arena> <amount>" + ChatColor.YELLOW +
-					" Sets the minimum amount of players for the Arena to start");
+					" " + Broadcast.get("help.minplayers"));
 			s.sendMessage(Broadcast.HELP + "/cq maxplayers <arena> <amount>" + ChatColor.YELLOW +
-					" Sets the maximum amount of players in an Arena");
+					" " + Broadcast.get("help.maxplayers"));
 			s.sendMessage(Broadcast.HELP + "/cq spawn <arena> [clear]" + ChatColor.YELLOW +
-					" Set a Playerspawn in the arena.");
+					" " + Broadcast.get("help.spawn"));
 			s.sendMessage(Broadcast.HELP + "/cq crystalspawn <arena> [clear]" + ChatColor.YELLOW +
-					" Set a Crystalspawn in the arena.");
+					" " + Broadcast.get("help.crystalspawn"));
 			s.sendMessage(Broadcast.HELP + "/cq itemspawn <arena> [clear]" + ChatColor.YELLOW +
-					" Set an Itemspawn in the arena.");
-			s.sendMessage(Broadcast.HELP + "/cq doublejump <arena>" + ChatColor.YELLOW + " Toggle if people can double jump");
-			s.sendMessage(Broadcast.HELP + "/cq check <arena>" + ChatColor.YELLOW + " See info about the Arena");
-			s.sendMessage(Broadcast.HELP + "/cq reset <arena>" + ChatColor.YELLOW + " Resets an Arena");
-			s.sendMessage(Broadcast.HELP + "/cq wand" + ChatColor.YELLOW + " Gives you the wand");
-			s.sendMessage(Broadcast.HELP + "/cq protect <arena> [remove]" + ChatColor.YELLOW + " (Un)Protects an Arena");
-			s.sendMessage(Broadcast.HELP + "/cq pos <1|2>" + ChatColor.YELLOW + " Sets position 1 or 2.");
+					" " + Broadcast.get("help.itemspawn"));
+			s.sendMessage(Broadcast.HELP + "/cq doublejump <arena>" + ChatColor.YELLOW + " " + Broadcast.get("help.doublejump"));
+			s.sendMessage(Broadcast.HELP + "/cq check <arena>" + ChatColor.YELLOW + " " + Broadcast.get("help.check"));
+			s.sendMessage(Broadcast.HELP + "/cq reset <arena>" + ChatColor.YELLOW + " " + Broadcast.get("help.reset"));
+			s.sendMessage(Broadcast.HELP + "/cq wand" + ChatColor.YELLOW + " " + Broadcast.get("help.wand"));
+			s.sendMessage(Broadcast.HELP + "/cq protect <arena> [remove]" + ChatColor.YELLOW + " " + Broadcast.get("help.protect"));
+			s.sendMessage(Broadcast.HELP + "/cq pos <1|2>" + ChatColor.YELLOW + " " + Broadcast.get("help.pos"));
 		}
 		if (!(s instanceof Player)) {
 			s.sendMessage(Broadcast.HELP + "/cq hardreset" + ChatColor.YELLOW + " Resets ALL data");
@@ -44,29 +44,33 @@ public class Help {
 
 		s.sendMessage(Broadcast.HELP + ChatColor.YELLOW + "<>--------------" + ChatColor.LIGHT_PURPLE + 
 				"CQ-HELP" + ChatColor.YELLOW + "--------------<>");
-		s.sendMessage(Broadcast.HELP + "/cq lobby" + ChatColor.YELLOW + " Join the CQ-Lobby");
-		s.sendMessage(Broadcast.HELP + "/cq quit" + ChatColor.YELLOW + " Leave a CQ-Game");
+		s.sendMessage(Broadcast.HELP + "/cq lobby" + ChatColor.YELLOW + " " + Broadcast.get("help.lobby"));
+		s.sendMessage(Broadcast.HELP + "/cq quit" + ChatColor.YELLOW + " " + Broadcast.get("help.quit"));
+		s.sendMessage(Broadcast.HELP + "/cq balance <player>" + ChatColor.YELLOW + " " + Broadcast.get("help.balance"));
+		s.sendMessage(Broadcast.HELP + "/cq shop" + ChatColor.YELLOW + " " + Broadcast.get("help.shop"));
 		
 		if (s.hasPermission("crystalquest.enable") || s.hasPermission("crystalquest.staff") ||
 				s.hasPermission("crystalquest.admin")) {
-			s.sendMessage(Broadcast.HELP + "/cq enable <arena>" + ChatColor.YELLOW + " Enables an Arena");
+			s.sendMessage(Broadcast.HELP + "/cq enable <arena>" + ChatColor.YELLOW + " " + Broadcast.get("help.enable"));
 		}
 		if (s.hasPermission("crystalquest.disable") || s.hasPermission("crystalquest.staff") ||
 				s.hasPermission("crystalquest.admin")) {
-			s.sendMessage(Broadcast.HELP + "/cq disable <arena>" + ChatColor.YELLOW + " Disables an Arena");
+			s.sendMessage(Broadcast.HELP + "/cq disable <arena>" + ChatColor.YELLOW + " " + Broadcast.get("help.disable"));
 		}
 		if (s.hasPermission("crystalquest.forcestart") || s.hasPermission("crystalquest.staff") ||
 				s.hasPermission("crystalquest.admin")) {
-			s.sendMessage(Broadcast.HELP + "/cq forcestart <arena>" + ChatColor.YELLOW + " Force an Arena to start");
+			s.sendMessage(Broadcast.HELP + "/cq forcestart <arena>" + ChatColor.YELLOW + " " + Broadcast.get("help.forcestart"));
 		}
 		if (s.hasPermission("crystalquest.kick") || s.hasPermission("crystalquest.staff") ||
 				s.hasPermission("crystalquest.admin")) {
-			s.sendMessage(Broadcast.HELP + "/cq kick <player>" + ChatColor.YELLOW + " Kicks a player from an Arena");
+			s.sendMessage(Broadcast.HELP + "/cq kick <player>" + ChatColor.YELLOW + " " + Broadcast.get("help.kick"));
 		}
 		if (s.hasPermission("crystalquest.admin")) {
-			s.sendMessage(Broadcast.HELP + "/cq reload" + ChatColor.YELLOW + " Reloads the config.yml");
-			s.sendMessage(Broadcast.HELP + ChatColor.YELLOW + "Use " + ChatColor.LIGHT_PURPLE + "/cq help setup" +
-					ChatColor.YELLOW + " to see all set-up commands.");
+			s.sendMessage(Broadcast.HELP + "/cq money <player> <amount>" + ChatColor.YELLOW + " " + Broadcast.get("help.money"));
+		}
+		if (s.hasPermission("crystalquest.admin")) {
+			s.sendMessage(Broadcast.HELP + "/cq reload" + ChatColor.YELLOW + " " + Broadcast.get("help.reload"));
+			s.sendMessage(Broadcast.HELP + ChatColor.YELLOW + Broadcast.get("help.other"));
 		}
 		
 	}

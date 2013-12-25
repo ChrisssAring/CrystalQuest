@@ -1,5 +1,7 @@
 package nl.SugCube.CrystalQuest.Listeners;
 
+import java.util.Random;
+
 import nl.SugCube.CrystalQuest.Broadcast;
 import nl.SugCube.CrystalQuest.CrystalQuest;
 import nl.SugCube.CrystalQuest.Game.Arena;
@@ -38,55 +40,71 @@ public class SignListener implements Listener {
 		
 		Player player = e.getPlayer();
 		
-		if (e.getLine(0).equalsIgnoreCase("[CrystalQuest]")) {
+		if (e.getLine(0).equalsIgnoreCase("[CrystalQuest]") || e.getLine(0).equalsIgnoreCase("[CQ]")) {
 			e.setLine(0, "[CrystalQuest]");
 			
-			if (e.getLine(1).isEmpty() && e.getLine(3).isEmpty()) {
-				e.setLine(2, ChatColor.DARK_PURPLE + "Pick a Class");
-				player.sendMessage(Broadcast.TAG + "Class-sign is succesfully created!");
-			} else {
-				try {
-					Arena a = plugin.am.getArena(e.getLine(1));
-					ChatColor color;
-					
-					if (a.isEnabled()) {
-						if (a.isCounting()) {
-							color = ChatColor.GOLD;
-							e.setLine(3, "Starting");
-						} else if (a.isInGame()) {
-							color = ChatColor.DARK_RED;
-							e.setLine(3, "In Game");
-						} else if (a.isEndGame()) {
-							color = ChatColor.DARK_PURPLE;
-							e.setLine(3, "Restarting");
+			if (player.hasPermission("crystalquest.admin")) {
+				if (e.getLine(1).isEmpty() && e.getLine(3).isEmpty() && (e.getLine(2).equalsIgnoreCase("class") || e.getLine(2).isEmpty())) {
+					e.setLine(2, ChatColor.DARK_PURPLE + "Pick a Class");
+					player.sendMessage(Broadcast.TAG + Broadcast.get("sign.succesful").replace("%sign%", "Class-sign"));
+				} else if (e.getLine(1).isEmpty() && e.getLine(3).isEmpty() && e.getLine(2).equalsIgnoreCase("random")) {
+					e.setLine(2, ChatColor.GREEN + "Random Arena");
+					player.sendMessage(Broadcast.TAG + Broadcast.get("sign.succesful").replace("%sign%", "Random Arena-sign"));
+				} else if (e.getLine(1).isEmpty() && e.getLine(3).isEmpty() && e.getLine(2).equalsIgnoreCase("shop")) {
+					e.setLine(2, ChatColor.YELLOW + "Open Shop");
+					player.sendMessage(Broadcast.TAG + Broadcast.get("sign.succesful").replace("%sign%", "Shop-sign"));
+				} else if (e.getLine(1).isEmpty() && e.getLine(3).isEmpty() && e.getLine(2).equalsIgnoreCase("lobby")) {
+					e.setLine(2, ChatColor.DARK_RED + "Lobby");
+					player.sendMessage(Broadcast.TAG + Broadcast.get("sign.succesful").replace("%sign%", "Lobby-sign"));
+				} else {
+					try {
+						Arena a = plugin.am.getArena(e.getLine(1));
+						ChatColor color;
+						
+						if (a.isEnabled()) {
+							if (a.isCounting()) {
+								color = ChatColor.GOLD;
+								e.setLine(3, "Starting");
+							} else if (a.isInGame()) {
+								color = ChatColor.DARK_RED;
+								e.setLine(3, "In Game");
+							} else if (a.isEndGame()) {
+								color = ChatColor.DARK_PURPLE;
+								e.setLine(3, "Restarting");
+							} else {
+								color = ChatColor.GREEN;
+								e.setLine(3, "Lobby");
+							}
+							
+							e.setLine(2, color + "" + a.getPlayers().size() + "/" + a.getMaxPlayers());
+							
 						} else {
-							color = ChatColor.GREEN;
-							e.setLine(3, "Lobby");
+							e.setLine(2, "");
+							e.setLine(3, ChatColor.DARK_RED + "Disabled");
 						}
 						
-						e.setLine(2, color + "" + a.getPlayers().size() + "/" + a.getMaxPlayers());
+						Sign s = (Sign) e.getBlock().getState();
+						s.setLine(0, e.getLine(0));
+						s.setLine(1, e.getLine(1));
+						s.setLine(2, e.getLine(2));
+						s.setLine(3, e.getLine(3));
+						s.update();
 						
-					} else {
-						e.setLine(2, "");
-						e.setLine(3, ChatColor.DARK_RED + "Disabled");
+						plugin.signHandler.getSigns().add(s);
+						plugin.signHandler.updateSigns();
+						player.sendMessage(Broadcast.TAG + Broadcast.get("sign.succesful").replace("%sign%", "Arena-sign"));
+					} catch (Exception ex) {
+						e.setLine(0, Broadcast.get("sign.invalid"));
+						e.setLine(1, Broadcast.get("sign.invalid"));
+						e.setLine(2, Broadcast.get("sign.invalid"));
+						e.setLine(3, Broadcast.get("sign.invalid"));
 					}
-					
-					Sign s = (Sign) e.getBlock().getState();
-					s.setLine(0, e.getLine(0));
-					s.setLine(1, e.getLine(1));
-					s.setLine(2, e.getLine(2));
-					s.setLine(3, e.getLine(3));
-					s.update();
-					
-					plugin.signHandler.getSigns().add(s);
-					plugin.signHandler.updateSigns();
-					player.sendMessage(Broadcast.TAG + "Arena-sign is succesfully created!");
-				} catch (Exception ex) {
-					e.setLine(0, ChatColor.DARK_RED + "Invalid Sign");
-					e.setLine(1, ChatColor.DARK_RED + "Invalid Sign");
-					e.setLine(2, ChatColor.DARK_RED + "Invalid Sign");
-					e.setLine(3, ChatColor.DARK_RED + "Invalid Sign");
 				}
+			} else {
+				e.setLine(0, Broadcast.get("sign.no-perms"));
+				e.setLine(1, Broadcast.get("sign.no-perms"));
+				e.setLine(2, Broadcast.get("sign.no-perms"));
+				e.setLine(3, Broadcast.get("sign.no-perms"));
 			}
 		}
 		
@@ -102,11 +120,76 @@ public class SignListener implements Listener {
 				//Checks if the sign contains [CrystalQuest]
 				Sign s = (Sign) e.getClickedBlock().getState();
 				if (s.getLine(0).equalsIgnoreCase("[CrystalQuest]")) {
+					e.setCancelled(true);
+					plugin.signHandler.updateSigns();
 					/*
 					 * Checks if the sign is a Class-pick sign and opens the class-choice menu.
 					 */
 					if (s.getLine(2).equalsIgnoreCase(ChatColor.DARK_PURPLE + "Pick a Class")) {
 						plugin.menuSC.openMenu(e.getPlayer());
+					}
+					/*
+					 * Checks if the sign is a Shop-sign and opens the shop menu;
+					 */
+					else if (s.getLine(2).equalsIgnoreCase(ChatColor.YELLOW + "Open Shop")) {
+						plugin.economy.getMainMenu().showMenu(e.getPlayer());
+					}
+					/*
+					 * Checks if the sign is a Lobby-sign and let you leave the game/teleport to lobby.
+					 */
+					else if (s.getLine(2).equalsIgnoreCase(ChatColor.DARK_RED + "Lobby")) {
+						if (plugin.getArenaManager().isInGame(e.getPlayer())) {
+							plugin.am.getArena(e.getPlayer()).removePlayer(e.getPlayer());
+							e.getPlayer().sendMessage(Broadcast.TAG + Broadcast.get("sign.left"));
+						} else {
+							e.getPlayer().teleport(plugin.getArenaManager().getLobby());
+							e.getPlayer().sendMessage(Broadcast.TAG + Broadcast.get("sign.lobby"));
+						}
+						plugin.signHandler.updateSigns();
+					}
+					/*
+					 * Checks if the sign is a Random Arena-pick sign and picks a random arena.
+					 */
+					else if (s.getLine(2).equalsIgnoreCase(ChatColor.GREEN + "Random Arena")) {
+						Arena a = null;
+						Random ran = new Random();
+						boolean nothingAvaiable = true;
+						
+						for (int i = 0; i < plugin.getArenaManager().getArenas().size(); i++) {
+							if (!plugin.getArenaManager().getArena(i).isInGame()) {
+								if (!plugin.getArenaManager().getArena(i).isFull()) {
+									if (plugin.getArenaManager().getArena(i).isEnabled()) {
+										nothingAvaiable = false;
+										break;
+									}
+								}
+							}
+						}
+						
+						if (nothingAvaiable) {
+							e.getPlayer().sendMessage(Broadcast.get("sign.no-available"));
+						} else {
+							int count = 0;
+							while (a == null) {
+								a = plugin.getArenaManager().getArena(ran.nextInt(plugin.getArenaManager().getArenas().size()));
+								if (a.isInGame() || a.isFull() || !a.isEnabled()) {
+									a = null;
+								}
+								
+								if (a != null) {
+									plugin.menuPT.updateMenu(a);
+									plugin.menuPT.showMenu(e.getPlayer(), a);
+									break;
+								}
+								
+								if (count > 999) {
+									e.getPlayer().sendMessage(Broadcast.get("sign.no-available"));
+									break;
+								}
+								
+								count++;
+							}
+						}
 					}
 					/*
 					 * Checks if the sign is indeed an Arena-sign and opens the team-choice menu.
@@ -115,7 +198,7 @@ public class SignListener implements Listener {
 							s.getLine(3).equalsIgnoreCase("Starting")) {
 						if (!plugin.signHandler.getSigns().contains(s)) {
 							plugin.signHandler.getSigns().add(s);
-							e.getPlayer().sendMessage(Broadcast.TAG + "The sign has been registered!");
+							e.getPlayer().sendMessage(Broadcast.TAG + Broadcast.get("sign.registered"));
 						} else {
 							Arena a = plugin.getArenaManager().getArena(s.getLine(1));
 							if (a != null) {
@@ -123,19 +206,16 @@ public class SignListener implements Listener {
 									plugin.menuPT.updateMenu(plugin.getArenaManager().getArena(s.getLine(1)));
 									plugin.menuPT.showMenu(e.getPlayer(), a);
 								} else {
-									e.getPlayer().sendMessage(ChatColor.RED + "[!!] Sorry, this arena is full!");
+									e.getPlayer().sendMessage(Broadcast.get("arena.full"));
 								}
 							} else {
-								e.getPlayer().sendMessage(ChatColor.RED + "[!!] This arena does not exist!");
+								e.getPlayer().sendMessage(Broadcast.get("arena.no-exist"));
 							}
 						}
 					} else {
-						e.getPlayer().sendMessage(ChatColor.RED + "[!!] Sorry, you can't join thi" +
-								"s arena!");
+						e.getPlayer().sendMessage(Broadcast.get("arena.cant-join"));
 					}
 				}
-				
-				plugin.signHandler.updateSigns();
 			}
 		}
 	}

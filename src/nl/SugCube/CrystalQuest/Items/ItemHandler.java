@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import nl.SugCube.CrystalQuest.Broadcast;
 import nl.SugCube.CrystalQuest.CrystalQuest;
 
 import org.bukkit.ChatColor;
@@ -24,7 +25,14 @@ public class ItemHandler {
 	public ItemHandler(CrystalQuest instance) {
 		plugin = instance;
 		items = new ArrayList<ItemStack>();
-		
+	}
+	
+	/**
+	 * Adds all items to the item-list
+	 * @param void
+	 * @return void
+	 */
+	public void addAllItems() {
 		addCrystalShard();
 		addSmallCrystal();
 		addShinyCrystal();
@@ -81,7 +89,7 @@ public class ItemHandler {
 	public void addLightning() {
 		ItemStack is = new ItemStack(Material.FEATHER, 1);
 		ItemMeta im = is.getItemMeta();
-		im.setDisplayName(ChatColor.YELLOW + "Lightning Bolt");
+		im.setDisplayName(Broadcast.get("items.lightning-bolt"));
 		is.setItemMeta(im);
 		this.items.add(is);
 	}
@@ -94,7 +102,7 @@ public class ItemHandler {
 	public void addGlue() {
 		ItemStack is = new ItemStack(Material.SLIME_BALL, 1);
 		ItemMeta im = is.getItemMeta();
-		im.setDisplayName(ChatColor.GREEN + "Glue");
+		im.setDisplayName(Broadcast.get("items.glue"));
 		is.setItemMeta(im);
 		this.items.add(is);
 	}
@@ -107,7 +115,7 @@ public class ItemHandler {
 	public void addLandmine() {
 		ItemStack is = new ItemStack(Material.STONE_PLATE, 1);
 		ItemMeta im = is.getItemMeta();
-		im.setDisplayName(ChatColor.GOLD + "Landmine");
+		im.setDisplayName(Broadcast.get("items.landmine"));
 		is.setItemMeta(im);
 		this.items.add(is);
 	}
@@ -120,7 +128,7 @@ public class ItemHandler {
 	public void addWolf() {
 		ItemStack is = new ItemStack(Material.BONE, 1);
 		ItemMeta im = is.getItemMeta();
-		im.setDisplayName(ChatColor.RESET + "Wolfie " + ChatColor.RED + "♥");
+		im.setDisplayName(Broadcast.get("items.wolf") + ChatColor.RED + " <3");
 		is.setItemMeta(im);
 		this.items.add(is);
 	}
@@ -146,7 +154,7 @@ public class ItemHandler {
 	public void addHammer() {
 		ItemStack is = new ItemStack(Material.DIAMOND_AXE, 1, (short) 1561);
 		ItemMeta im = is.getItemMeta();
-		im.setDisplayName(ChatColor.DARK_PURPLE + "Hammer");
+		im.setDisplayName(Broadcast.get("items.hammer"));
 		is.setItemMeta(im);
 		is.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 3);
 		is.addUnsafeEnchantment(Enchantment.KNOCKBACK, 10);
@@ -161,7 +169,7 @@ public class ItemHandler {
 	public void addWither() {
 		ItemStack is = new ItemStack(Material.SKULL_ITEM, 1, (short) 1);
 		SkullMeta im = (SkullMeta) is.getItemMeta();
-		im.setDisplayName(ChatColor.DARK_GRAY + "Wither");
+		im.setDisplayName(Broadcast.get("items.wither"));
 		is.setItemMeta(im);
 		this.items.add(is);
 	}
@@ -174,7 +182,7 @@ public class ItemHandler {
 	public void addShield() {
 		ItemStack is = new ItemStack(Material.CHAINMAIL_CHESTPLATE, 1);
 		ItemMeta im = is.getItemMeta();
-		im.setDisplayName(ChatColor.GRAY + "Shield");
+		im.setDisplayName(Broadcast.get("items.shield"));
 		is.setItemMeta(im);
 		this.items.add(is);
 	}
@@ -189,7 +197,7 @@ public class ItemHandler {
 		ItemStack is = new ItemStack(Material.POTION, 1, (short) 8265);
 		PotionMeta im = (PotionMeta) is.getItemMeta();
 		im.addCustomEffect(effect, true);
-		im.setDisplayName(ChatColor.DARK_RED + "Strength Potion");
+		im.setDisplayName(Broadcast.get("items.strength"));
 		is.setItemMeta(im);
 		this.items.add(is);
 	}
@@ -202,7 +210,7 @@ public class ItemHandler {
 	public void addFireFlower() {
 		ItemStack is = new ItemStack(Material.RED_ROSE, 1);
 		ItemMeta im = is.getItemMeta();
-		im.setDisplayName(ChatColor.GOLD + "Fire" + ChatColor.DARK_RED + " Flower");
+		im.setDisplayName(Broadcast.get("items.flower"));
 		is.setItemMeta(im);
 		this.items.add(is);
 	}
@@ -215,7 +223,7 @@ public class ItemHandler {
 	public void addGoldenApple() {
 		ItemStack is = new ItemStack(Material.GOLDEN_APPLE, 1);
 		ItemMeta im = is.getItemMeta();
-		im.setDisplayName(ChatColor.GOLD + "Golden Apple");
+		im.setDisplayName(Broadcast.get("items.apple"));
 		is.setItemMeta(im);
 		this.items.add(is);
 	}
@@ -228,7 +236,7 @@ public class ItemHandler {
 	public void addRailgun() {
 		ItemStack is = new ItemStack(Material.IRON_HOE, 1);
 		ItemMeta im = is.getItemMeta();
-		im.setDisplayName(ChatColor.GRAY + "Railgun");
+		im.setDisplayName(Broadcast.get("items.railgun"));
 		is.setItemMeta(im);
 		this.items.add(is);
 	}
@@ -241,7 +249,7 @@ public class ItemHandler {
 	public void addBlooper() {
 		ItemStack is = new ItemStack(Material.INK_SACK, 1, (short) 0);
 		ItemMeta im = is.getItemMeta();
-		im.setDisplayName(ChatColor.DARK_GRAY + "Blooper");
+		im.setDisplayName(Broadcast.get("items.blooper"));
 		is.setItemMeta(im);
 		this.items.add(is);
 	}
@@ -256,7 +264,7 @@ public class ItemHandler {
 		ItemStack is = new ItemStack(Material.POTION, 1, (short) 8226);
 		PotionMeta im = (PotionMeta) is.getItemMeta();
 		im.addCustomEffect(effect, true);
-		im.setDisplayName(ChatColor.AQUA + "Speed Potion");
+		im.setDisplayName(Broadcast.get("items.speed"));
 		is.setItemMeta(im);
 		this.items.add(is);
 	}
@@ -267,9 +275,9 @@ public class ItemHandler {
 	 * @return void
 	 */
 	public void addHealthPotion() {
-		ItemStack is = new ItemStack(Material.POTION, 1, (short) 16421);
+		ItemStack is = new ItemStack(Material.POTION, 1, (short) 16453);
 		ItemMeta im = is.getItemMeta();
-		im.setDisplayName(ChatColor.LIGHT_PURPLE + "Instant Health");
+		im.setDisplayName(Broadcast.get("items.health"));
 		is.setItemMeta(im);
 		this.items.add(is);
 	}
@@ -282,7 +290,7 @@ public class ItemHandler {
 	public void addGrenade() {
 		ItemStack is = new ItemStack(Material.EGG, 1);
 		ItemMeta im = is.getItemMeta();
-		im.setDisplayName(ChatColor.YELLOW + "Grenade");
+		im.setDisplayName(Broadcast.get("items.grenade"));
 		is.setItemMeta(im);
 		items.add(is);
 	}
@@ -295,7 +303,7 @@ public class ItemHandler {
 	public void addShinyCrystal() {
 		ItemStack is = new ItemStack(Material.DIAMOND, 1);
 		ItemMeta im = is.getItemMeta();
-		im.setDisplayName(ChatColor.AQUA + "Shiny Crystal");
+		im.setDisplayName(Broadcast.get("items.shiny-crystal"));
 		is.setItemMeta(im);
 		is.addUnsafeEnchantment(Enchantment.SILK_TOUCH, 1);
 		items.add(is);
@@ -309,7 +317,7 @@ public class ItemHandler {
 	public void addSmallCrystal() {
 		ItemStack is = new ItemStack(Material.DIAMOND, 1);
 		ItemMeta im = is.getItemMeta();
-		im.setDisplayName(ChatColor.AQUA + "Small Crystal");
+		im.setDisplayName(Broadcast.get("items.small-crystal"));
 		is.setItemMeta(im);
 		items.add(is);
 	}
@@ -322,7 +330,7 @@ public class ItemHandler {
 	public void addCrystalShard() {
 		ItemStack is = new ItemStack(Material.EMERALD, 1);
 		ItemMeta im = is.getItemMeta();
-		im.setDisplayName(ChatColor.GREEN + "Crystal Shard");
+		im.setDisplayName(Broadcast.get("items.crystal-shard"));
 		is.setItemMeta(im);
 		items.add(is);
 	}

@@ -78,7 +78,7 @@ public class SaveData {
 				data.set(pfx + "protection", null);
 			}
 			
-			for (int i = 0; i < 6; i++) {
+			for (int i = 0; i < 8; i++) {
 				if (a.getTeamSpawns().get(i).size() > 0) {
 					List<String> list = new ArrayList<String>();
 					for (Location loc : a.getTeamSpawns().get(i)) {

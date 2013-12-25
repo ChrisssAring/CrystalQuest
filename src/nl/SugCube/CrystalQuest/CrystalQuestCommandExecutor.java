@@ -38,16 +38,47 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 		
 		if (args.length >= 1) {
 			/*
+			 * SPECTATE <ARENA>
+			 */
+			if (args[0].equalsIgnoreCase("spectate")) {
+				if (sender.hasPermission("crystalquest.admin") || sender.hasPermission("crystalquest.staff") ||
+						sender.hasPermission("crystalquest.spectate")) {
+					if (sender instanceof Player) {
+						if (args.length >= 2) {
+							Player p = (Player) sender;
+							try {
+								Arena a;
+								try {
+									a = plugin.am.getArena(Integer.parseInt(args[1]) - 1);
+								} catch (Exception e) {
+									a = plugin.am.getArena(args[1]);
+								}
+								a.addPlayer(p, 0, true);
+							} catch (Exception e) {
+								sender.sendMessage(Broadcast.get("commands.spectate-error"));
+							}
+						} else {
+							sender.sendMessage(Broadcast.get("commands.spectate-usage"));
+						}
+					} else {
+						sender.sendMessage(Broadcast.ONLY_IN_GAME);
+					}
+				} else {
+					sender.sendMessage(Broadcast.NO_PERMISSION);
+				}
+				plugin.signHandler.updateSigns();
+			}
+			/*
 			 * LEAVE/QUIT
 			 */
-			if (args[0].equalsIgnoreCase("leave") || args[0].equalsIgnoreCase("quit")) {
+			else if (args[0].equalsIgnoreCase("leave") || args[0].equalsIgnoreCase("quit")) {
 				if (sender instanceof Player) {
 					Player player = (Player) sender;
 					if (plugin.am.isInGame(player)) {
 						plugin.am.getArena(player).removePlayer(player);
-						player.sendMessage(Broadcast.TAG + "You left the game.");
+						player.sendMessage(Broadcast.TAG + SMeth.setColours(plugin.getLang().getString("commands.game-leave")));
 					} else {
-						player.sendMessage(ChatColor.RED + "[!!] You are not in-game!");
+						player.sendMessage(SMeth.setColours(plugin.getLang().getString("commands.game-leave")));
 					}
 				} else {
 					plugin.getLogger().info(Broadcast.ONLY_IN_GAME);
@@ -55,13 +86,61 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 				plugin.signHandler.updateSigns();
 			}
 			/*
+			 * MONEY <PLAYER> <SETAMOUNT>
+			 */
+			else if (args[0].equalsIgnoreCase("money")) {
+				if (sender.hasPermission("crystalquest.admin")) {
+					if (args.length >= 3) {
+						try {
+							Player p = Bukkit.getPlayer(args[1]);
+							int amount = Integer.parseInt(args[2]);
+							plugin.economy.getBalance().setBalance(p, amount);
+							sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.money").replace("%player%", p.getName())
+									.replace("%amount%", amount + ""));
+						} catch (Exception e) {
+							sender.sendMessage(SMeth.setColours(plugin.getLang().getString("commands.usage-money")));
+						}
+					} else {
+						sender.sendMessage(SMeth.setColours(plugin.getLang().getString("commands.usage-money")));
+					}
+				} else {
+					sender.sendMessage(Broadcast.NO_PERMISSION);
+				}
+			}
+			/*
+			 * BALANCE <PLAYER>
+			 */
+			else if (args[0].equalsIgnoreCase("balance")) {
+				if (args.length >= 2) {
+					int balance = plugin.economy.getBalance().getBalance(args[1], false);
+					if (balance >= 0) {
+						sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.balance").replace("%player%", args[1])
+								.replace("%balance%", balance + ""));
+					} else {
+						sender.sendMessage(SMeth.setColours(plugin.getLang().getString("commands.couldnt-find-player")));
+					}
+				} else {
+					sender.sendMessage(SMeth.setColours(plugin.getLang().getString("commands.usage-balance")));
+				}
+			}
+			/*
+			 * SHOP
+			 */
+			else if (args[0].equalsIgnoreCase("shop")) {
+				if (sender instanceof Player) {
+					Player player = (Player) sender;
+					plugin.economy.getMainMenu().showMenu(player);
+				} else {
+					sender.sendMessage(Broadcast.ONLY_IN_GAME);
+				}
+			}
+			/*
 			 * CREATEARENA
 			 */
 			else if (args[0].equalsIgnoreCase("createarena")) {
 				if (sender.hasPermission("crystalquest.admin")) {
 					int arenaId = plugin.am.createArena() + 1;
-					sender.sendMessage(Broadcast.TAG + "Arena " + ChatColor.GRAY + arenaId +
-							ChatColor.YELLOW + " has been created!");
+					sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.createarena").replace("%arena%", arenaId + ""));
 				} else {
 					sender.sendMessage(Broadcast.NO_PERMISSION);
 				}
@@ -81,14 +160,12 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 								a = plugin.am.getArena(args[1]);
 							}
 							a.setEnabled(true);
-							sender.sendMessage(Broadcast.TAG + "Enabled Arena " + args[1]);
+							sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.enable-succeed").replace("%arena%", args[1]));
 						} catch (Exception e) {
-							sender.sendMessage(ChatColor.RED + "[!!] Could not enable the arena!");
-							e.printStackTrace();
-							plugin.getLogger().info("NullPointerException? Make sure the arena exists!");
+							sender.sendMessage(Broadcast.get("commands.enable-error"));
 						}
 					} else {
-						sender.sendMessage(ChatColor.RED + "[!!] Usage: /cq enable <arena#|arenaname>");
+						sender.sendMessage(Broadcast.get("commands.enable-usage"));
 					}
 				} else {
 					sender.sendMessage(Broadcast.NO_PERMISSION);
@@ -110,14 +187,12 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 								a = plugin.am.getArena(args[1]);
 							}
 							a.setEnabled(false);
-							sender.sendMessage(Broadcast.TAG + "Disabled Arena " + args[1]);
+							sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.disable-succeed").replace("%arena%", args[1]));
 						} catch (Exception e) {
-							sender.sendMessage(ChatColor.RED + "[!!] Could not disable the arena!");
-							e.printStackTrace();
-							plugin.getLogger().info("NullPointerException? Make sure the arena exists!");
+							sender.sendMessage(Broadcast.get("commands.disable-error"));
 						}
 					} else {
-						sender.sendMessage(ChatColor.RED + "[!!] Usage: /cq disable <arena#|arenaname>");
+						sender.sendMessage(Broadcast.get("commands.disable-usage"));
 					}
 				} else {
 					sender.sendMessage(Broadcast.NO_PERMISSION);
@@ -131,7 +206,7 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 				if (sender instanceof Player) {
 					if (sender.hasPermission("crystalquest.admin")) {
 						plugin.am.setLobby(((Player) sender).getLocation());
-						sender.sendMessage(Broadcast.TAG + "The lobbyspawn has been set!");
+						sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.lobbyspawn"));
 					} else {
 						sender.sendMessage(Broadcast.NO_PERMISSION);
 					}
@@ -156,20 +231,18 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 								Location[] spawns = a.getLobbySpawns();
 								int teamId = Teams.getTeamId(args[2]);
 								if (teamId < a.getTeamCount()) {
-									spawns[Teams.getTeamId(args[2])] = ((Player) sender).getLocation();
+									spawns[teamId] = ((Player) sender).getLocation();
 									a.setLobbySpawns(spawns);
-									sender.sendMessage(Broadcast.TAG + "Set the lobby of Team " +
-												args[2] + " for Arena " + args[1]);
+									sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.teamlobby-set").replace("%team%", args[2])
+											.replace("%arena%", args[1]));
 								} else {
-									sender.sendMessage(ChatColor.RED + "[!!] This team does not exist in this arena!");
+									sender.sendMessage(Broadcast.get("commands.team-not-exist"));
 								}
 							} catch (Exception e) {
-								sender.sendMessage(ChatColor.RED + "[!!] Could not set the Teamlobby");
-								e.printStackTrace();
-								plugin.getLogger().info("NullPointerException? Make sure the arena exists!");
+								sender.sendMessage(Broadcast.get("commands.teamlobby-error"));
 							}
 						} else {
-							sender.sendMessage(ChatColor.RED + "[!!] Usage: /cq teamlobby <arena#|arenaname> <team>");
+							sender.sendMessage(Broadcast.get("commands.teamlobby-usage"));
 						}
 					} else {
 						sender.sendMessage(Broadcast.NO_PERMISSION);
@@ -193,14 +266,13 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 								a = plugin.am.getArena(args[1]);
 							}
 							a.setIsCounting(true);
-							sender.sendMessage(Broadcast.TAG + "Started Arena " + args[1]);
+							sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.forcestart-succeed").replace("%arena%",
+									args[1]));
 						} catch (Exception e) {
-							sender.sendMessage(ChatColor.RED + "[!!] Could not start the arena!");
-							e.printStackTrace();
-							plugin.getLogger().info("NullPointerException? Make sure the arena exists!");
+							sender.sendMessage(Broadcast.get("commands.forcestart-error"));
 						}
 					} else {
-						sender.sendMessage(ChatColor.RED + "[!!] Usage: /cq forcestart <arena#|arenaname>");
+						sender.sendMessage(Broadcast.get("commands.forcestart-usage"));
 					}
 				} else {
 					sender.sendMessage(Broadcast.NO_PERMISSION);
@@ -231,20 +303,17 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 										s.update(true);
 									}
 								}
-							} else {
-								sender.sendMessage(ChatColor.RED + "[!!] Wrong name!");
-							}
-							
-							sender.sendMessage(Broadcast.TAG + "Arena " + (a.getId() + 1) + "'s name is now " +
-									ChatColor.GRAY + a.getName());
 								
+								sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.setname-succeed").replace(
+										"%arena%", (a.getId() + 1) + "").replace("%name%", a.getName()));
+							} else {
+								sender.sendMessage(Broadcast.get("commands.wrong-name"));
+							}								
 						} catch (Exception e) {
-							sender.sendMessage(ChatColor.RED + "[!!] Could not name the arena!");
-							e.printStackTrace();
-							plugin.getLogger().info("NullPointerException? Make sure the arena exists!");
+							sender.sendMessage(Broadcast.get("commands.setname-failed"));
 						}
 					} else {
-						sender.sendMessage(ChatColor.RED + "[!!] Usage: /cq setname <arena#|arenaname> <newname>");
+						sender.sendMessage(Broadcast.get("commands.setname-usage"));
 					}
 				} else {
 					sender.sendMessage(Broadcast.NO_PERMISSION);
@@ -260,7 +329,7 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 							" please use the command 'cq yes' to confirm.");
 					this.askedHardReset = true;
 				} else {
-					plugin.getLogger().info(Broadcast.NO_PERMISSION);
+					sender.sendMessage(Broadcast.NO_PERMISSION);
 				}
 			}
 			/*
@@ -305,11 +374,10 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 											a = plugin.am.getArena(args[1]);
 										}
 										a.clearPlayerSpawns();
-										sender.sendMessage(Broadcast.TAG + "Removed all player-spawns from Arena " + args[1]);
+										sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.spawn-removeall")
+												.replace("%arena%", args[1]));
 									} catch (Exception e) {
-										sender.sendMessage(ChatColor.RED + "[!!] Could not remove the playerspawns!");
-										e.printStackTrace();
-										plugin.getLogger().info("NullPointerException? Make sure the arena exists!");
+										sender.sendMessage(Broadcast.get("commands.spawn-removeall-error"));
 									}
 								}
 							}
@@ -322,16 +390,15 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 										a = plugin.am.getArena(args[1]);
 									}
 									a.addPlayerSpawn(((Player) sender).getLocation());
-									sender.sendMessage(Broadcast.TAG + "Added spawn " + ChatColor.GRAY + "#" + 
-										a.getPlayerSpawns().size() + ChatColor.YELLOW + " to Arena " + args[1]);
+									sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.spawn-added")
+											.replace("%no%", a.getPlayerSpawns().size() + "")
+											.replace("%arena%", args[1]));
 								} catch (Exception e) {
-									sender.sendMessage(ChatColor.RED + "[!!] Could not add the playerspawn!");
-									e.printStackTrace();
-									plugin.getLogger().info("NullPointerException? Make sure the arena exists!");
+									sender.sendMessage(Broadcast.get("commands.spawn-added-error"));
 								}
 							}
 						} else {
-							sender.sendMessage(ChatColor.RED + "[!!] Usage: /cq spawn <arena#|arenaname> [clear]");
+							sender.sendMessage(Broadcast.get("commands.spawn-usage"));
 						}
 					} else {
 						sender.sendMessage(Broadcast.NO_PERMISSION);
@@ -357,11 +424,10 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 											a = plugin.am.getArena(args[1]);
 										}
 										a.clearCrystalSpawns();
-										sender.sendMessage(Broadcast.TAG + "Removed all crystalspawns from Arena " + args[1]);
+										sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.crystalspawn-removeall")
+												.replace("%arena%", args[1]));
 									} catch (Exception e) {
-										sender.sendMessage(ChatColor.RED + "[!!] Could not remove the crystalspawns!");
-										e.printStackTrace();
-										plugin.getLogger().info("NullPointerException? Make sure the arena exists!");
+										sender.sendMessage(Broadcast.get("commands.crystalspawn-removeall-error"));
 									}
 								}
 							}
@@ -374,16 +440,15 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 										a = plugin.am.getArena(args[1]);
 									}
 									a.addCrystalSpawn(((Player) sender).getLocation().add(0, -0.6, 0));
-									sender.sendMessage(Broadcast.TAG + "Added crystalspawn " + ChatColor.GRAY + "#" + 
-										a.getCrystalSpawns().size() + ChatColor.YELLOW + " to Arena " + args[1]);
+									sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.crystalspawn-added")
+											.replace("%no%", a.getCrystalSpawns().size() + "")
+											.replace("%arena%", args[1]));
 								} catch (Exception e) {
-									sender.sendMessage(ChatColor.RED + "[!!] Could not add the crystalspawn!");
-									e.printStackTrace();
-									plugin.getLogger().info("NullPointerException? Make sure the arena exists!");
+									sender.sendMessage(Broadcast.get("commands.crystalspawn-added-error"));
 								}
 							}
 						} else {
-							sender.sendMessage(ChatColor.RED + "[!!] Usage: /cq crystalspawn <arena#|arenaname> [clear]");
+							sender.sendMessage(Broadcast.get("commands.crystalspawn-usage"));
 						}
 					} else {
 						sender.sendMessage(Broadcast.NO_PERMISSION);
@@ -409,11 +474,10 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 											a = plugin.am.getArena(args[1]);
 										}
 										a.clearItemSpawns();
-										sender.sendMessage(Broadcast.TAG + "Removed all itemspawns from Arena " + args[1]);
+										sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.itemspawn-removeall")
+												.replace("%arena%", args[1]));
 									} catch (Exception e) {
-										sender.sendMessage(ChatColor.RED + "[!!] Could not remove the itemspawns!");
-										e.printStackTrace();
-										plugin.getLogger().info("NullPointerException? Make sure the arena exists!");
+										sender.sendMessage(Broadcast.get("commands.itemspawn-removeall-error"));
 									}
 								}
 							}
@@ -426,16 +490,15 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 										a = plugin.am.getArena(args[1]);
 									}
 									a.addItemSpawn(((Player) sender).getLocation().add(0, 2, 0));
-									sender.sendMessage(Broadcast.TAG + "Added itemspawn " + ChatColor.GRAY + "#" + 
-										a.getItemSpawns().size() + ChatColor.YELLOW + " to Arena " + args[1]);
+									sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.itemspawn-added")
+											.replace("%no%", a.getItemSpawns().size() + "")
+											.replace("%arena%", args[1]));
 								} catch (Exception e) {
-									sender.sendMessage(ChatColor.RED + "[!!] Could not add the itemspawn!");
-									e.printStackTrace();
-									plugin.getLogger().info("NullPointerException? Make sure the arena exists!");
+									sender.sendMessage(Broadcast.get("commands.itemspawn-usage"));
 								}
 							}
 						} else {
-							sender.sendMessage(ChatColor.RED + "[!!] Usage: /cq itemspawn <arena#|arenaname> [clear]");
+							sender.sendMessage(Broadcast.get("commands.itemspawn-usage"));
 						}
 					} else {
 						sender.sendMessage(Broadcast.NO_PERMISSION);
@@ -465,14 +528,15 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 										int teamId = Teams.getTeamId(args[2]);
 										if (teamId < a.getTeamCount()) {
 											a.getTeamSpawns().get(teamId).clear();
-											sender.sendMessage(Broadcast.TAG + "All spawns have been reset in Arena " +
-											args[1] + " for team " + args[2]);
+											sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.teamspawn-clear")
+													.replace("%arena%", args[1])
+													.replace("%team%", args[2]));
 										} else {
-											sender.sendMessage(ChatColor.RED + "[!!] This team does not exist in this arena!");
+											sender.sendMessage(Broadcast.get("commands.teamspawn-team-doesnt-exist"));
 										}
 									}
 								} catch (Exception e) { 
-									sender.sendMessage(ChatColor.RED + "[!!] Usage: /cq teamspawn <arena> <team> [clear]");
+									sender.sendMessage(Broadcast.get("commands.teamspawn-usage"));
 								}
 								finally {
 									canContinue = false;
@@ -483,15 +547,16 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 								int teamId = Teams.getTeamId(args[2]);
 								if (teamId < a.getTeamCount()) {
 									a.getTeamSpawns().get(teamId).add(((Player) sender).getLocation());
-									sender.sendMessage(Broadcast.TAG + "Added Teamspawn " + ChatColor.GRAY + "#" +
-											a.getTeamSpawns().get(teamId).size() + ChatColor.YELLOW + " to arena " + args[1] +
-											" for team " + args[2]);
+									sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.itemspawn-added")
+											.replace("%no%", a.getTeamSpawns().get(teamId).size() + "")
+											.replace("%arena%", args[1])
+											.replace("%team%", args[2]));
 								} else {
-									sender.sendMessage(ChatColor.RED + "[!!] This team does not exist in this arena!");
+									sender.sendMessage(Broadcast.get("commands.teamspawn-team-doesnt-exist"));
 								}
 							}
 						} else {
-							sender.sendMessage(ChatColor.RED + "[!!] Usage: /cq teamspawn <arena> <team> [clear]");
+							sender.sendMessage(Broadcast.get("commands.teamspawn-usage"));
 						}
 					} else {
 						sender.sendMessage(Broadcast.NO_PERMISSION);
@@ -511,17 +576,19 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 						if (player != null) {
 							if (plugin.am.isInGame(player)) {
 								plugin.am.getArena(player).removePlayer(player);
-								player.sendMessage(Broadcast.TAG + "You have been kicked from the arena!");
-								sender.sendMessage(Broadcast.TAG + "You kicked " + ChatColor.GRAY + player.getName() + 
-										" from the game.");
+								player.sendMessage(Broadcast.TAG + Broadcast.get("commands.kick-kicked"));
+								sender.sendMessage(Broadcast.get("commands.kicked-you-kicked")
+										.replace("%player%", player.getName()));
 							} else {
-								sender.sendMessage(ChatColor.RED + "[!!] Player " + player.getName() + " is not in-game!");
+								sender.sendMessage(Broadcast.get("commands.kick-not-ingame")
+										.replace("%player%", player.getName()));
 							}
 						} else {
-							sender.sendMessage(ChatColor.RED + "[!!] Player " + args[1] + " is not online!");
+							sender.sendMessage(Broadcast.get("commands.kick-not-online")
+									.replace("%player%", args[1]));
 						}
 					} else {
-						sender.sendMessage(ChatColor.RED + "[!!] Usage: /cq kick <player>");
+						sender.sendMessage(Broadcast.get("commands.kick-usage"));
 					}
 				} else {
 					sender.sendMessage(Broadcast.NO_PERMISSION);
@@ -541,14 +608,14 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 								a = plugin.am.getArena(args[1]);
 							}
 							a.setMinPlayers(Integer.parseInt(args[2]));
-							sender.sendMessage(Broadcast.TAG + "Set minimum amount of players to " + args[2]);
+							sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.minplayers-set")
+									.replace("%arena%", args[1])
+									.replace("%amount%", args[2]));
 						} catch (Exception e) {
-							sender.sendMessage(ChatColor.RED + "[!!] Could not set the minimum of players!");
-							e.printStackTrace();
-							plugin.getLogger().info("NullPointerException? Make sure the arena exists!");
+							sender.sendMessage(Broadcast.get("commands.minplayers-error"));
 						}
 					} else {
-						sender.sendMessage(ChatColor.RED + "[!!] Usage: /cq minplayers <arena> <amount>");
+						sender.sendMessage(Broadcast.get("commands.minplayers-usage"));
 					}
 				} else {
 					sender.sendMessage(Broadcast.NO_PERMISSION);
@@ -568,14 +635,14 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 								a = plugin.am.getArena(args[1]);
 							}
 							a.setMaxPlayers(Integer.parseInt(args[2]));
-							sender.sendMessage(Broadcast.TAG + "Set maximum amount of players to " + args[2]);
+							sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.maxplayers-set")
+									.replace("%arena%", args[1])
+									.replace("%amount%", args[2]));
 						} catch (Exception e) {
-							sender.sendMessage(ChatColor.RED + "[!!] Could not set the maximum of players!");
-							e.printStackTrace();
-							plugin.getLogger().info("NullPointerException? Make sure the arena exists!");
+							sender.sendMessage(Broadcast.get("commands.maxplayers-error"));
 						}
 					} else {
-						sender.sendMessage(ChatColor.RED + "[!!] Usage: /cq maxplayers <arena> <amount>");
+						sender.sendMessage(Broadcast.get("commands.maxplayers-usage"));
 					}
 				} else {
 					sender.sendMessage(Broadcast.NO_PERMISSION);
@@ -595,14 +662,15 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 								a = plugin.am.getArena(args[1]);
 							}
 							a.setTeams(Integer.parseInt(args[2]));
-							sender.sendMessage(Broadcast.TAG + "Set amount of teams to " + args[2]);
+							sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.setteams-set")
+									.replace("%arena%", args[1])
+									.replace("%amount%", args[2]));
+							a.resetArena();
 						} catch (Exception e) {
-							sender.sendMessage(ChatColor.RED + "[!!] Could not set the amount of teams!");
-							e.printStackTrace();
-							plugin.getLogger().info("NullPointerException? Make sure the arena exists!");
+							sender.sendMessage(Broadcast.get("commands.setteams-error"));
 						}
 					} else {
-						sender.sendMessage(ChatColor.RED + "[!!] Usage: /cq setteams <arena> <amount>");
+						sender.sendMessage(Broadcast.get("commands.setteams-usage"));
 					}
 				} else {
 					sender.sendMessage(Broadcast.NO_PERMISSION);
@@ -617,10 +685,10 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 					boolean first = false;
 					for (Arena a : plugin.am.arena) {
 						if (!first) {
-							arenas += a.getName() + "(" + (a.getId() + 1) + ")";
+							arenas += a.getName() + "[" + (a.getId() + 1) + "]";
 							first = true;
 						} else {
-							arenas += ", " + a.getName() + "(" + (a.getId() + 1) + ")";
+							arenas += ", " + a.getName() + "[" + (a.getId() + 1) + "]";
 						}
 					}
 					sender.sendMessage(Broadcast.TAG + arenas);
@@ -632,7 +700,7 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 			 * HOWDEY (just for fun)
 			 */
 			else if (args[0].equalsIgnoreCase("howdey")) {
-				sender.sendMessage(Broadcast.HOWDEY);
+				sender.sendMessage(Broadcast.TAG + Broadcast.HOWDEY);
 			}
 			/*
 			 * CHECK <ARENA#|ARENANAME>
@@ -648,66 +716,78 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 						}
 						
 						if (a.getName().isEmpty()) {
-							sender.sendMessage(Broadcast.TAG + SMeth.setColours("Name: &dNot set&e | ID: &d" + (a.getId() + 1)));
+							sender.sendMessage(Broadcast.TAG + SMeth.setColours(Broadcast.get("commands.name") + " &7Not set&e | ID: &a" + (a.getId() + 1)));
 						} else {
-							sender.sendMessage(Broadcast.TAG + SMeth.setColours("Name: &d" + a.getName() + "&e | ID: &d" + (a.getId() + 1)));
+							sender.sendMessage(Broadcast.TAG + SMeth.setColours(Broadcast.get("commands.name") + " &a" + a.getName() + "&e | ID: &a" + (a.getId() + 1)));
 						}
 						
 						if (a.getTeamCount() < 2) {
-							sender.sendMessage(Broadcast.TAG + SMeth.setColours("Team Amount: &dNot set"));
+							sender.sendMessage(Broadcast.TAG + SMeth.setColours(Broadcast.get("commands.team-amount") + " &7Not set"));
 						} else {
-							sender.sendMessage(Broadcast.TAG + SMeth.setColours("Team Amount: &d" + a.getTeamCount()));
+							sender.sendMessage(Broadcast.TAG + SMeth.setColours(Broadcast.get("commands.team-amount") + " &a" + a.getTeamCount()));
 						}
 						
 						if (a.getMinPlayers() < 2) {
-							sender.sendMessage(Broadcast.TAG + SMeth.setColours("Minimum Players: &dNot set"));
+							sender.sendMessage(Broadcast.TAG + SMeth.setColours(Broadcast.get("commands.minimum-players") + " &7Not set"));
 						} else {
-							sender.sendMessage(Broadcast.TAG + SMeth.setColours("Minimum Players: &d" + a.getMinPlayers()));
+							sender.sendMessage(Broadcast.TAG + SMeth.setColours(Broadcast.get("commands.minimum-players") + " &a" + a.getMinPlayers()));
 						}
 						
 						if (a.getMaxPlayers() < 2) {
-							sender.sendMessage(Broadcast.TAG + SMeth.setColours("Maximum Players: &dNot set"));
+							sender.sendMessage(Broadcast.TAG + SMeth.setColours(Broadcast.get("commands.maximum-players") + " &7Not set"));
 						} else {
-							sender.sendMessage(Broadcast.TAG + SMeth.setColours("Maximum Players: &d" + a.getMaxPlayers()));
+							sender.sendMessage(Broadcast.TAG + SMeth.setColours(Broadcast.get("commands.maximum-players") + " &a" + a.getMaxPlayers()));
 						}
 						
 						if (a.getLobbySpawns().length > 0) {
 							if (a.getLobbySpawns()[0] == null) {
-								sender.sendMessage(Broadcast.TAG + SMeth.setColours("Team Lobby Spawns: &dNot set"));
+								sender.sendMessage(Broadcast.TAG + SMeth.setColours(Broadcast.get("commands.team-lobby-spawns") + " &7Not set"));
 							} else {
-								sender.sendMessage(Broadcast.TAG + SMeth.setColours("Team Lobby Spawns: Set!"));
+								sender.sendMessage(Broadcast.TAG + SMeth.setColours(Broadcast.get("commands.team-lobby-spawns") + " &aSet!"));
 							}
 						} else {
-							sender.sendMessage(Broadcast.TAG + SMeth.setColours("Team Lobby Spawns: &dNot set"));
+							sender.sendMessage(Broadcast.TAG + SMeth.setColours(Broadcast.get("commands.team-lobby-spawns") + " &7Not set"));
 						}
 						
 						if (a.isEnabled()) {
-							sender.sendMessage(Broadcast.TAG + SMeth.setColours("State: &aEnabled"));
+							sender.sendMessage(Broadcast.TAG + SMeth.setColours(Broadcast.get("commands.state") + " &aEnabled"));
 						} else {
-							sender.sendMessage(Broadcast.TAG + SMeth.setColours("State: &cDisabled"));
+							sender.sendMessage(Broadcast.TAG + SMeth.setColours(Broadcast.get("commands.state") + " &7Disabled"));
 						}
 						
-						if (a.getTeamSpawns().get(a.getTeamCount() - 1).size() > 0) {
-							sender.sendMessage(Broadcast.TAG + SMeth.setColours("Player Spawns: &dTeam Spawns"));
-						} else if (a.getPlayerSpawns().size() < 1) {
-							sender.sendMessage(Broadcast.TAG + SMeth.setColours("Player Spawns: &dNot set"));
+						if (a.getTeamSpawns().size() > 0) {
+							if (a.getTeamCount() > 1) {
+								if (a.getTeamSpawns().get(a.getTeamCount() - 1).size() > 0) {
+									sender.sendMessage(Broadcast.TAG + SMeth.setColours(Broadcast.get("commands.player-spawns") + " &aTeam Spawns"));
+								} else if (a.getPlayerSpawns().size() < 1) {
+									sender.sendMessage(Broadcast.TAG + SMeth.setColours(Broadcast.get("commands.player-spawns") + " &7Not set"));
+								} else {
+									sender.sendMessage(Broadcast.TAG + SMeth.setColours(Broadcast.get("commands.player-spawns") + " &a" + a.getPlayerSpawns().size()));
+								}
+							} else {
+								sender.sendMessage(Broadcast.TAG + SMeth.setColours(Broadcast.get("commands.player-spawns") + " &7Not set"));
+							}
 						} else {
-							sender.sendMessage(Broadcast.TAG + SMeth.setColours("Player Spawns: &d" + a.getPlayerSpawns().size()));
+							if (a.getPlayerSpawns().size() < 1) {
+								sender.sendMessage(Broadcast.TAG + SMeth.setColours(Broadcast.get("commands.player-spawns") + " &7Not set"));
+							} else {
+								sender.sendMessage(Broadcast.TAG + SMeth.setColours(Broadcast.get("commands.player-spawns") + " &a" + a.getPlayerSpawns().size()));
+							}
 						}
 						
 						if (a.getCrystalSpawns().size() < 1) {
-							sender.sendMessage(Broadcast.TAG + SMeth.setColours("Crystal Spawns: &dNot set"));
+							sender.sendMessage(Broadcast.TAG + SMeth.setColours(Broadcast.get("commands.crystal-spawns") + " &7Not set"));
 						} else {
-							sender.sendMessage(Broadcast.TAG + SMeth.setColours("Crystal Spawns: &d" + a.getCrystalSpawns().size()));
+							sender.sendMessage(Broadcast.TAG + SMeth.setColours(Broadcast.get("commands.crystal-spawns") + " &a" + a.getCrystalSpawns().size()));
 						}
 						
 						if (a.getItemSpawns().size() < 1) {
-							sender.sendMessage(Broadcast.TAG + SMeth.setColours("Item Spawns: &dNot set"));
+							sender.sendMessage(Broadcast.TAG + SMeth.setColours(Broadcast.get("commands.item-spawns") + " &7Not set"));
 						} else {
-							sender.sendMessage(Broadcast.TAG + SMeth.setColours("Item Spawns: &d" + a.getItemSpawns().size()));
+							sender.sendMessage(Broadcast.TAG + SMeth.setColours(Broadcast.get("commands.item-spawns") + " &a" + a.getItemSpawns().size()));
 						}
 					} else {
-						sender.sendMessage(ChatColor.RED + "[!!] Usage: /cq check <arena#|arenaname>");
+						sender.sendMessage(Broadcast.get("commands.check-usage"));
 					}
 				} else {
 					sender.sendMessage(Broadcast.NO_PERMISSION);
@@ -721,8 +801,9 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 					Player player = (Player) sender;
 					if (!plugin.am.isInGame(player)) {
 						player.teleport(plugin.am.getLobby());
+						player.sendMessage(Broadcast.TAG + Broadcast.get("commands.lobby-tp"));
 					} else {
-						sender.sendMessage(ChatColor.RED + "[!!] You are already in-game!");
+						sender.sendMessage(Broadcast.get("commands.lobby-already-ingame"));
 					}
 				} else {
 					sender.sendMessage(Broadcast.ONLY_IN_GAME);
@@ -734,14 +815,15 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 			else if (args[0].equalsIgnoreCase("reload")) {
 				if (sender.hasPermission("crystalquest.admin")) {
 					plugin.reloadConfig();
+					plugin.reloadLang();
 					for (Arena a : plugin.getArenaManager().getArenas()) {
 						for (Player p : a.getPlayers()) {
-							p.sendMessage(ChatColor.RED + "[!!] You have been kicked because CrystalQuest has been reloaded!");
+							p.sendMessage(Broadcast.get("commands.reload-kicked"));
 						}
 						a.declareWinner();
 						a.resetArena();
 					}
-					sender.sendMessage(Broadcast.TAG + "Config.yml has been reloaded!");
+					sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.reload-reloaded"));
 				} else {
 					sender.sendMessage(Broadcast.NO_PERMISSION);
 				}
@@ -760,14 +842,13 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 								a = plugin.am.getArena(args[1]);
 							}
 							a.resetArena();
-							sender.sendMessage(Broadcast.TAG + "The arena has been reset!");
+							sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.reset-reset")
+									.replace("%arena%", args[1]));
 						} catch (Exception e) {
-							sender.sendMessage(ChatColor.RED + "[!!] Could not reset the arena!");
-							e.printStackTrace();
-							plugin.getLogger().info("NullPointerException? Make sure the arena exists!");
+							sender.sendMessage(Broadcast.get("commands.reset-error"));
 						}
 					} else {
-						sender.sendMessage(ChatColor.RED + "[!!] Usage: /cq reset <arena#|arenaname>");
+						sender.sendMessage(Broadcast.get("commands.reset-usage"));
 					}
 				} else {
 					sender.sendMessage(Broadcast.NO_PERMISSION);
@@ -798,12 +879,12 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 						ItemMeta im = is.getItemMeta();
 						im.setDisplayName(Broadcast.TAG + "Wand");
 						List<String> lore = new ArrayList<String>();
-						lore.add("Left click to set position 1");
-						lore.add("Right click to set position 2");
+						lore.add(Broadcast.get("commands.wand-lore-pos1"));
+						lore.add(Broadcast.get("commands.wand-lore-pos2"));
 						im.setLore(lore);
 						is.setItemMeta(im);
 						p.getInventory().addItem(is);
-						p.sendMessage(Broadcast.TAG + "Here is your wand! Left click = Pos1, Right Click = Pos2");
+						p.sendMessage(Broadcast.TAG + Broadcast.get("commands.wand"));
 					} else {
 						sender.sendMessage(Broadcast.NO_PERMISSION);
 					}
@@ -827,8 +908,8 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 									a = plugin.am.getArena(args[1]);
 								}
 								a.setProtection(null);
-								sender.sendMessage(Broadcast.TAG + "Removed the protection from " +
-										ChatColor.GRAY + "Arena " + args[1]);
+								sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.protect-remove")
+										.replace("%arena%", args[1]));
 								canContinue = false;
 							} catch (Exception ex) { }
 						}
@@ -842,14 +923,13 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 								a = plugin.am.getArena(args[1]);
 							}
 							plugin.prot.protectArena(a);
-							sender.sendMessage(Broadcast.TAG + "Protected " + ChatColor.GRAY + "Arena " + args[1]);
+							sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.protect-succeed")
+									.replace("%arena%", args[1]));
 						} catch (Exception e) {
-							sender.sendMessage(ChatColor.RED + "[!!] Could not protect the arena!");
-							e.printStackTrace();
-							plugin.getLogger().info("NullPointerException? Make sure the arena exists!");
+							sender.sendMessage(Broadcast.get("commands.protect-error"));
 						}
 					} else if (canContinue) {
-						sender.sendMessage(ChatColor.RED + "[!!] Usage: /cq protect <arena> [remove]");
+						sender.sendMessage(Broadcast.get("commands.protect-usage"));
 					}
 				} else {
 					sender.sendMessage(Broadcast.NO_PERMISSION);
@@ -865,20 +945,23 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 							try {
 								if (Integer.parseInt(args[1]) == 1) {
 									plugin.prot.pos1 = ((Player) sender).getLocation();
-									sender.sendMessage(Broadcast.TAG + "Position " + args[1] + " is set to " +
-											ChatColor.GRAY + plugin.prot.pos1.getX() + ", " + plugin.prot.pos1.getY() +
-											", " + plugin.prot.pos1.getX());
+									sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.pos-set")
+											.replace("%pos%", args[1])
+											.replace("%coords%", plugin.prot.pos1.getX() + ", " + plugin.prot.pos1.getY() +
+													", " + plugin.prot.pos1.getX()));
 								} else {
 									plugin.prot.pos2 = ((Player) sender).getLocation();
-									sender.sendMessage(Broadcast.TAG + "Position " + args[1] + " is set to " +
-											ChatColor.GRAY + plugin.prot.pos2.getX() + ", " + plugin.prot.pos2.getY() +
-											", " + plugin.prot.pos2.getX());
+									sender.sendMessage(Broadcast.TAG + Broadcast.get("commands.pos-set")
+											.replace("%pos%", args[1])
+											.replace("%coords%", plugin.prot.pos2.getX() + ", " + plugin.prot.pos2.getY() +
+													", " + plugin.prot.pos2.getX()));
 								}
 							} catch (Exception ex) {
-								sender.sendMessage(ChatColor.RED + "[!!] Could not set position " + args[1]);
+								sender.sendMessage(Broadcast.get("commands.pos-error")
+										.replace("%pos%", args[1]));
 							}
 						} else {
-							sender.sendMessage(ChatColor.RED + "[!!] Usage: /cq pos <1|2>");
+							sender.sendMessage(Broadcast.get("commands.pos-usage"));
 						}
 					} else {
 						sender.sendMessage(Broadcast.NO_PERMISSION);
@@ -906,15 +989,14 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 							} else {
 								a.setDoubleJump(true);
 							}
-							sender.sendMessage(Broadcast.TAG + "Set DoubleJump in Arena " + args[1] +
-									" to " + ChatColor.GRAY +  a.canDoubleJump());
+							sender.sendMessage(Broadcast.get("commands.doublejump-set")
+									.replace("%arena%", args[1])
+									.replace("%canjump%", a.canDoubleJump() + ""));
 						} catch (Exception e) {
-							sender.sendMessage(ChatColor.RED + "[!!] Could not disable the arena!");
-							e.printStackTrace();
-							plugin.getLogger().info("NullPointerException? Make sure the arena exists!");
+							sender.sendMessage(Broadcast.get("commands.doublejump-error"));
 						}
 					} else {
-						sender.sendMessage(ChatColor.RED + "[!!] Usage: /cq doublejump <arena>");
+						sender.sendMessage(Broadcast.get("commands.doublejump-usage"));
 					}
 				} else {
 					sender.sendMessage(Broadcast.NO_PERMISSION);
@@ -926,9 +1008,9 @@ public class CrystalQuestCommandExecutor implements CommandExecutor {
 			 */
 			else {
 				if (sender instanceof Player) {
-					sender.sendMessage(ChatColor.RED + "[!!] Invalid command! Use /cq help for a list of commands.");
+					sender.sendMessage(ChatColor.RED + Broadcast.get("commands.invalid"));
 				} else {
-					plugin.getLogger().info("Invalid command! Use 'cq help' for a list of commands.");
+					plugin.getLogger().info(Broadcast.get("commands.invalid"));
 				}
 			}
 			

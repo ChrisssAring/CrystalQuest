@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import nl.SugCube.CrystalQuest.Broadcast;
 import nl.SugCube.CrystalQuest.CrystalQuest;
+import nl.SugCube.CrystalQuest.Game.Classes;
 import nl.SugCube.CrystalQuest.SBA.SMeth;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -83,19 +86,22 @@ public class SelectClass {
 		 * Gets a list of all classes' names.
 		 */
 		for (String key : plugin.getConfig().getConfigurationSection("kit").getKeys(false)) {
-			classes.add(key);
+			if (Classes.hasPermission(p, key)) {
+				classes.add(key);
+			}
 		}
 		
 		/*
 		 * Checks and sets the size the inventory has to be to fit in all the classes.
 		 */
 		int invSize = 9;
-		for (int i = 9; i <= 54; i += 9) {
-			if (classes.size() <= i) {
+		
+		for (int i = 54; i >= 9; i -= 9) {
+			if (classes.size() < i) {
 				invSize = i;
-				break;
 			}
 		}
+		
 		Inventory inv = Bukkit.createInventory(p, invSize, "Pick a Class");
 		
 		//Adds the random-class
@@ -120,6 +126,11 @@ public class SelectClass {
 				for (String str : lines) {
 					lore.add(SMeth.setColours(str));
 				}
+				
+				if (!Classes.hasPermission(p, s)) {
+					lore.add(ChatColor.RESET + "" + ChatColor.RED + Broadcast.get("menu.not-available"));
+				}
+				
 				im.setLore(lore);
 			}
 			

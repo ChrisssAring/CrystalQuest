@@ -5,8 +5,9 @@ import java.util.Random;
 import nl.SugCube.CrystalQuest.Broadcast;
 import nl.SugCube.CrystalQuest.CrystalQuest;
 import nl.SugCube.CrystalQuest.Teams;
+import nl.SugCube.CrystalQuest.Economy.Multipliers;
+import nl.SugCube.CrystalQuest.SBA.SMeth;
 
-import org.bukkit.ChatColor;
 import org.bukkit.FireworkEffect;
 import org.bukkit.FireworkEffect.Type;
 import org.bukkit.Material;
@@ -44,30 +45,38 @@ public class GameLoop implements Runnable {
 					
 					if (a.getCountdown() == 120) {
 						for (Player pl : a.getPlayers()) {
-							pl.sendMessage(Broadcast.TAG + "The quest will start in " + ChatColor.YELLOW + "2 minutes");
+							pl.sendMessage(Broadcast.TAG + Broadcast.get("arena.start")
+									.replace("%time%", "2 " + Broadcast.get("arena.minutes")));
 						}
 					} else if (a.getCountdown() == 60) {
 						for (Player pl : a.getPlayers()) {
-							pl.sendMessage(Broadcast.TAG + "The quest will start in " + ChatColor.YELLOW + "1 minute");
+							pl.sendMessage(Broadcast.TAG + Broadcast.get("arena.start")
+									.replace("%time%", "1 " + Broadcast.get("arena.minute")));
 						}
 					} else if (a.getCountdown() == 30) {
 						for (Player pl : a.getPlayers()) {
-							pl.sendMessage(Broadcast.TAG + "The quest will start in " + ChatColor.YELLOW + "30 seconds");
+							pl.sendMessage(Broadcast.TAG + Broadcast.get("arena.start")
+									.replace("%time%", "30 " + Broadcast.get("arena.seconds")));
 						}
 					} else if (a.getCountdown() == 10) {
 						for (Player pl : a.getPlayers()) {
-							pl.sendMessage(Broadcast.TAG + "The quest will start in " + ChatColor.YELLOW + "10 seconds");
+							pl.sendMessage(Broadcast.TAG + Broadcast.get("arena.start")
+									.replace("%time%", "10 " + Broadcast.get("arena.seconds")));
 						}
 					} else if (a.getCountdown() <= 5 && a.getCountdown() > 0) {
 						for (Player pl : a.getPlayers()) {
-							pl.sendMessage(Broadcast.TAG + "The quest will start in " + ChatColor.YELLOW +
-									a.getCountdown() + " seconds");
+							pl.sendMessage(Broadcast.TAG + Broadcast.get("arena.start")
+									.replace("%time%", a.getCountdown() + " " + Broadcast.get("arena.seconds")));
 							pl.playSound(pl.getLocation(), Sound.CLICK, 20F, 20F);
 						}
 					} else if (a.getCountdown() <= 0) {
 						for (Player pl : a.getPlayers()) {
-							pl.sendMessage(Broadcast.TAG + "The quest has started!");
+							plugin.im.setClassInventory(pl);
+							pl.sendMessage(Broadcast.TAG + Broadcast.get("arena.started"));
 							pl.playSound(pl.getLocation(), Sound.LEVEL_UP, 20F, 20F);
+							pl.sendMessage(Broadcast.TAG + Broadcast.get("arena.using-class")
+									.replace("%class%", SMeth.setColours(plugin.getConfig().getString(
+									"kit." + plugin.im.playerClass.get(pl) + ".name"))));
 						}
 						a.setIsCounting(false);
 						a.setCountdown(plugin.getConfig().getInt("arena.countdown") + 1);
@@ -92,13 +101,13 @@ public class GameLoop implements Runnable {
 									if (is.hasItemMeta()) {
 										if (is.getItemMeta().hasDisplayName()) {
 											if (is.getItemMeta().getDisplayName()
-													.equalsIgnoreCase(ChatColor.GREEN + "Crystal Shard")) {
+													.equalsIgnoreCase(Broadcast.get("items.crystal-shard"))) {
 												p.getInventory().remove(is);
 											} else if (is.getItemMeta().getDisplayName()
-													.equalsIgnoreCase(ChatColor.AQUA + "Small Crystal")) {
+													.equalsIgnoreCase(Broadcast.get("items.small-crystal"))) {
 												p.getInventory().remove(is);
 											} else if (is.getItemMeta().getDisplayName()
-													.equalsIgnoreCase(ChatColor.AQUA + "Shiny Crystal")) {
+													.equalsIgnoreCase(Broadcast.get("items.shiny-crystal"))) {
 												p.getInventory().remove(is);
 											}
 										}
@@ -107,7 +116,10 @@ public class GameLoop implements Runnable {
 							}
 							
 							if (p.getLevel() > 0) {
-								a.addScore(plugin.getArenaManager().getTeam(p), p.getLevel());
+								int extraPoints = (int) Multipliers.getMultiplier("xp",
+										plugin.economy.getLevel(p, "xp", "crystals"), false) - 1;
+								
+								a.addScore(plugin.getArenaManager().getTeam(p), p.getLevel() + extraPoints);
 								p.setLevel(0);
 							}
 						}
@@ -136,20 +148,22 @@ public class GameLoop implements Runnable {
 						
 						for (Player p : a.getPlayers()) {
 							try {
-								if (a.getTeam(p) == Teams.getTeamIdFromNAME(this.winningTeam)) {
-									Firework f = p.getLocation().getWorld().spawn(p.getLocation().add(0, 2, 0), Firework.class);
-									FireworkMeta fm = f.getFireworkMeta();
-									fm.setPower(1);
-									FireworkEffect fe = FireworkEffect.builder()
-															.flicker(true)
-															.withColor(plugin.im.getTeamColour(a.getTeam(p)))
-															.with(Type.STAR)
-															.build();
-									fm.clearEffects();
-									fm.addEffect(fe);
-									f.setFireworkMeta(fm);
+								if (!a.getSpectators().contains(p)) {
+									if (a.getTeam(p) == Teams.getTeamIdFromNAME(this.winningTeam)) {
+										Firework f = p.getLocation().getWorld().spawn(p.getLocation().add(0, 2, 0), Firework.class);
+										FireworkMeta fm = f.getFireworkMeta();
+										fm.setPower(1);
+										FireworkEffect fe = FireworkEffect.builder()
+																.flicker(true)
+																.withColor(plugin.im.getTeamColour(a.getTeam(p)))
+																.with(Type.STAR)
+																.build();
+										fm.clearEffects();
+										fm.addEffect(fe);
+										f.setFireworkMeta(fm);
+									}
 								}
-							} catch (Exception e) { e.printStackTrace(); }
+							} catch (Exception e) { }
 						}
 					}
 				}

@@ -4,41 +4,42 @@ import nl.SugCube.CrystalQuest.SBA.SMeth;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 public class Broadcast {
 	
 	public static CrystalQuest plugin;
-	public static final String TAG = SMeth.setColours("&7[&dCrystalQuest&7]: &e");
-	public static final String HELP = SMeth.setColours("&7[&dCQ-?&7]: ");
-	public static final String HOWDEY = "Howdey!";
-	public static final String NO_PERMISSION = ChatColor.RED + "[!!] Sorry, you don't have permission to perform this command!";
-	public static final String ONLY_IN_GAME = "Only in-game players can perform this command!";
+	public static String TAG = SMeth.setColours("&7[&dCrystalQuest&7]: &e");
+	public static String HELP = SMeth.setColours("&7[&dCQ-?&7]: ");
+	public static String HOWDEY = "Howdey!";
+	public static String NO_PERMISSION;
+	public static String ONLY_IN_GAME;
 	
 	public Broadcast(CrystalQuest instance) {
 		plugin = instance;
 	}
 	
 	public static void showAbout(CommandSender sender) {
-		if (sender instanceof Player) {
-			sender.sendMessage(
-				" " + TAG + "Plugin made by " + ChatColor.GREEN + plugin.getDescription().getAuthors().toString() + "\n" +
-				TAG + "Current version: " + plugin.getDescription().getVersion() + " (Up-to-date)\n" +
-				TAG + "Use " + ChatColor.LIGHT_PURPLE + "/cq help " + ChatColor.YELLOW + "to get a list of commands.");
+		Update uc = new Update(69421, plugin.getDescription().getVersion());
+		String update = "";
+		
+		if (uc.query()) {
+			update = "(New version avaiable!)";
 		} else {
-			Update uc = new Update(69421, plugin.getDescription().getVersion());
-			String update = "";
-			
-			if (uc.query()) {
-				update = "(New version avaiable!)";
-			} else {
-				update = "(Up-to-date)";
-			}
-			
-			plugin.getLogger().info("Plugin made by " + plugin.getDescription().getAuthors().toString());
-			plugin.getLogger().info("Current version: " + plugin.getDescription().getVersion() + " " + update);
-			plugin.getLogger().info("Use '/cq help' to get a list of commands.");
+			update = "(Up-to-date)";
 		}
+		
+		sender.sendMessage(TAG + "Plugin made by " + ChatColor.GREEN + plugin.getDescription().getAuthors().toString());
+		sender.sendMessage(TAG + "Current version: " + plugin.getDescription().getVersion() + " " + update);
+		sender.sendMessage(TAG + "Use " + ChatColor.LIGHT_PURPLE + "/cq help " + ChatColor.YELLOW + "to get a list of commands.");
+	}
+	
+	public static void setMessages() {
+		NO_PERMISSION = SMeth.setColours(plugin.getLang().getString("broadcast.no-permission"));
+		ONLY_IN_GAME = SMeth.setColours(plugin.getLang().getString("broadcast.only-in-game"));
+	}
+	
+	public static String get(String s) {
+		return SMeth.setColours(plugin.getLang().getString(s));
 	}
 
 }

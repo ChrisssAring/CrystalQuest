@@ -96,6 +96,11 @@ public class ArenaManager {
 					return a;
 				}
 			}
+			for (Player pl : a.getSpectators()) {
+				if (p == pl) {
+					return a;
+				}
+			}
 		}
 		return null;
 	}
@@ -107,7 +112,7 @@ public class ArenaManager {
 	 */
 	public boolean isInGame(Player p) {
 		for (Arena a : arena) {
-			if (a.getPlayers().contains(p)) {
+			if (a.getPlayers().contains(p) || a.getSpectators().contains(p)) {
 				return true;
 			}
 		}

@@ -9,23 +9,30 @@ arena:
   item-spawn-chance: 120
   team-colour-prefix: true
   force-even-teams: true
+shop:
+  start-price: 518
+  multiplier: 2.18
+  crystal-multiplier: 1
+  crystal-message: '%teamcolour%+%amount% Crystal(s)'
 kit:
   default:
     name: '&dCrystal Hunter'
     icon: eyeofender
-    lore: '&7The default class%nl%&f&7Used to smash some *ss'
+    lore: '&7The default class%nl%&f&7Used to smash some butts'
+    price: -1
     items:
     - team_helmet
     - team_chestplate
     - team_leggings
     - team_boots
-    - woodsword,1,0,unbreaking,10
-    - bow,1,0,infinity,1,unbreaking,10
+    - woodsword,1,0,unbreaking,3
+    - bow,1,0,infinity,1,unbreaking,3
     - arrow,1
   archer:
     name: '&aArcher'
     icon: bow
     lore: '&2&oRanged Blood'
+    price: -1
     items:
     - team_helmet
     - leatherchestplate
@@ -37,40 +44,44 @@ kit:
     name: '&7Knight'
     icon: stonesword
     lore: '&b&oMedieval Madness'
+    price: -1
     items:
      - chainmailhelmet
      - chainmailchestplate
      - team_leggings
      - chainmailboots
-     - stonesword,1,0,unbreaking,10,sharpness,1
+     - stonesword,1,0,unbreaking,3,sharpness,1
   fishtfight:
     name: '&bFishtFight'
     icon: rawfish
     lore: '&9&oFlippin Heck Mun!'
+    price: -1
     items:
      - team_helmet
      - rawfish
   tnt:
-    name: '&4TNT'
+    name: '&a[VIP] &4TNT'
     icon: TNT
     lore: '&cBLOW IT ALL UP!!!'
+    price: 500
     items:
-     - woodsword,1,0,unbreaking,10,knockback,1
+     - woodsword,1,0,unbreaking,3,knockback,1
      - potion,64,16428
      - tnt,8
-     - goldenhelmet,1,0,blastprotection,2,unbreaking,10
-     - team_boots,1,0,blastprotection,2,unbreaking,10
-     - team_chestplate,1,0,blastprotection,2,unbreaking,10
-     - team_leggings,1,0,blastprotection,2,unbreaking,10
+     - goldenhelmet,1,0,blastprotection,2,unbreaking,3
+     - team_boots,1,0,blastprotection,2,unbreaking,3
+     - team_chestplate,1,0,blastprotection,2,unbreaking,3
+     - team_leggings,1,0,blastprotection,2,unbreaking,3
   iron-golem:
     name: '&a[VIP] &6Iron Golem'
     icon: pumpkin,1,0,sharpness,1
     lore: '&aOnly the strongest will survive'
+    price: 1000
     items:
     - team_helmet
     - ironchestplate,1,0,protection,1
     - ironleggings,1,0,protection,1
     - team_boots
-    - ironsword,1,0,unbreaking,10
-    - bow,1,0,infinity,1,unbreaking,10
+    - ironsword,1,0,unbreaking,3
+    - bow,1,0,infinity,1,unbreaking,3
     - arrow,1

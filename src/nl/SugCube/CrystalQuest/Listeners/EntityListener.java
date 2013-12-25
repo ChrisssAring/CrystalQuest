@@ -1,16 +1,22 @@
 package nl.SugCube.CrystalQuest.Listeners;
 
+import java.util.Random;
+
+import nl.SugCube.CrystalQuest.Broadcast;
 import nl.SugCube.CrystalQuest.CrystalQuest;
 import nl.SugCube.CrystalQuest.Teams;
+import nl.SugCube.CrystalQuest.Economy.Multipliers;
 import nl.SugCube.CrystalQuest.Game.Arena;
 
 import org.bukkit.DyeColor;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.EnderCrystal;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -45,7 +51,15 @@ public class EntityListener implements Listener {
 			}
 			
 			if (isGameCreeper) {
-				c.getWorld().dropItem(c.getLocation(), plugin.itemHandler.getItemByName("Crystal Shard"));
+				double amount = 1;
+				if (e.getEntity().getKiller() != null) {
+					Player p = e.getEntity().getKiller();
+					amount = Multipliers.getMultiplier("creepergem",
+							plugin.economy.getLevel(p, "creepers", "upgrade"), false);
+				}
+				for (double i = 0; i < amount; i++) {
+					c.getWorld().dropItem(c.getLocation(), plugin.itemHandler.getItemByName(Broadcast.get("items.crystal-shard")));
+				}
 			}
 		}
 		
@@ -56,6 +70,12 @@ public class EntityListener implements Listener {
 	
 	@EventHandler
 	public void onEntityExplode(EntityExplodeEvent e) {
+		if (e.getEntity() instanceof Fireball) {
+			if (plugin.prot.isInProtectedArena(e.getEntity().getLocation())) {
+				e.setCancelled(true);
+			}
+		}
+
 		if (e.getEntity() instanceof EnderCrystal) {			
 			if (plugin.prot.isInProtectedArena(e.getEntity().getLocation())) {
 				e.setCancelled(true);
@@ -151,7 +171,6 @@ public class EntityListener implements Listener {
 		if (e.getEntity() instanceof EnderCrystal) {
 			boolean isForGame = false;
 			boolean isValid = true;
-			
 			if (e.getDamager() instanceof Projectile) {
 				if (((Projectile) e.getDamager()).getShooter() instanceof Player) {
 					Projectile proj = (Projectile) e.getDamager();
@@ -166,6 +185,8 @@ public class EntityListener implements Listener {
 					isForGame = true;
 					isValid = true;
 				}
+			} else if (e.getDamager() instanceof Creeper) {
+				e.setCancelled(true);
 			}
 			
 			if (isForGame) {
@@ -176,22 +197,59 @@ public class EntityListener implements Listener {
 					plugin.getArenaManager().getArena(pl).getGameCrystalMap().remove(e.getEntity());
 					
 					if (isValid) {
-						plugin.am.getArena(pl).addScore(plugin.am.getTeam(pl), 3);
-						e.getEntity().remove();
-						
-						Firework f = e.getEntity().getLocation().getWorld().spawn(e.getEntity().getLocation(), Firework.class);
-						FireworkMeta fm = f.getFireworkMeta();
-						fm.setPower(0);
-						FireworkEffect fe = FireworkEffect.builder()
-												.flicker(true)
-												.withColor(plugin.im.getTeamColour(plugin.am.getTeam(pl)))
-												.build();
-						fm.clearEffects();
-						fm.addEffect(fe);
-						f.setFireworkMeta(fm);
+						if (isOwnTeamCrystal((EnderCrystal) e.getEntity(), pl)) {
+							double chance = Multipliers.getMultiplier("smash",
+									plugin.economy.getLevel(pl, "smash", "crystals"), false);
+							double multi = 3;
+
+							if (chance > 0) {
+								Random ran = new Random();
+								if (ran.nextInt(100) <= chance * 100) {
+									multi = 6;
+								}
+							}
+							
+							plugin.am.getArena(pl).addScore(plugin.am.getTeam(pl), (int) multi);
+							e.getEntity().remove();
+							
+							Firework f = e.getEntity().getLocation().getWorld().spawn(e.getEntity().getLocation(), Firework.class);
+							FireworkMeta fm = f.getFireworkMeta();
+							fm.setPower(0);
+							FireworkEffect fe = FireworkEffect.builder()
+													.flicker(true)
+													.withColor(plugin.im.getTeamColour(plugin.am.getTeam(pl)))
+													.build();
+							fm.clearEffects();
+							fm.addEffect(fe);
+							f.setFireworkMeta(fm);
+						} else {
+							pl.sendMessage(Broadcast.get("arena.own-crystals")
+									.replace("%colour%", "" + Teams.getTeamChatColour(plugin.getArenaManager().getTeam(pl))));
+						}
 					}
 				}
 			}	
+		}
+	}
+	
+	/**
+	 * Checks if the crystal is not marked as a defence-crystal.
+	 * This means that the own team shouldn't smash these!
+	 * @param ec (EnderCrystal) The crystal that has been smashed.
+	 * @param pl (Player) The player who has smashed the crystal.
+	 * @return (boolean) True if the crystal is team-specified.
+	 */
+	@SuppressWarnings("deprecation")
+	public boolean isOwnTeamCrystal(EnderCrystal ec, Player pl) {
+		Location loc = ec.getLocation().add(0, -1, 0);
+		if (loc.getBlock().getType() == Material.WOOL) {
+			if (Teams.getTeamFromDataValue(loc.getBlock().getData()) != plugin.getArenaManager().getTeam(pl)) {
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return true;
 		}
 	}
 	

@@ -6,12 +6,14 @@ import nl.SugCube.CrystalQuest.Broadcast;
 import nl.SugCube.CrystalQuest.CrystalQuest;
 import nl.SugCube.CrystalQuest.Teams;
 import nl.SugCube.CrystalQuest.Update;
+import nl.SugCube.CrystalQuest.Economy.Multipliers;
 import nl.SugCube.CrystalQuest.Events.PlayerJoinArenaEvent;
 import nl.SugCube.CrystalQuest.Events.PlayerLeaveArenaEvent;
+import nl.SugCube.CrystalQuest.Events.TeamWinGameEvent;
 import nl.SugCube.CrystalQuest.Game.Arena;
+import nl.SugCube.CrystalQuest.Game.ArenaManager;
 import nl.SugCube.CrystalQuest.IO.LoadData;
 
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -36,12 +38,11 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 
@@ -53,18 +54,145 @@ public class PlayerListener implements Listener {
 		plugin = instance;	
 	}
 	
-	 @EventHandler
+	/*
+	 * SPECTATOR STUFF
+	 */
+	@EventHandler
+	public void onSpectatorDamage(EntityDamageEvent e) {
+		if (e.getEntity() instanceof Player) {
+			Player p = (Player) e.getEntity();
+			ArenaManager am = plugin.getArenaManager();
+			if (am.isInGame(p)) {
+				if (am.getArena(p).getSpectators().contains(p)) {
+					p.setFireTicks(0);
+					p.setHealth(20);
+					p.setFoodLevel(20);
+					p.setExp(0);
+					p.setLevel(0);
+					p.setSaturation(20);
+					e.setCancelled(true);
+				}
+			}
+		}
+	}
+	
+	@EventHandler
+	public void onEntityDamageBySpectator(EntityDamageByEntityEvent e) {
+		if (e.getEntity() instanceof Player) {
+			Player p = (Player) e.getEntity();
+			if (plugin.getArenaManager().isInGame(p)) {
+				if (plugin.getArenaManager().getArena(p).getSpectators().contains(p)) {
+					e.setCancelled(true);
+				}
+			}
+		} else if (e.getDamager() instanceof Player) {
+			Player p = (Player) e.getDamager();
+			if (plugin.getArenaManager().isInGame(p)) {
+				if (plugin.getArenaManager().getArena(p).getSpectators().contains(p)) {
+					e.setCancelled(true);
+				}
+			}
+		}
+	}
+	
+	@SuppressWarnings("deprecation")
+	@EventHandler
+	public void onSpectatorInteract(PlayerInteractEvent e) {
+		Player p = e.getPlayer();
+		if (plugin.getArenaManager().isInGame(p)) {
+			if (plugin.getArenaManager().getArena(p).getSpectators().contains(p)) {
+				e.setCancelled(true);
+				p.getInventory().clear();
+				p.updateInventory();
+			}
+		}
+	}
+	
+	@EventHandler
+	public void onSpectatorPickupItem(PlayerPickupItemEvent e) {
+		Player p = e.getPlayer();
+		if (plugin.getArenaManager().isInGame(p)) {
+			if (plugin.getArenaManager().getArena(p).getSpectators().contains(p)) {
+				e.setCancelled(true);
+			}
+		}
+	}
+	
+	@EventHandler
+	public void onPlayerSpectate(PlayerMoveEvent e) {
+		Player p = e.getPlayer();
+		if (plugin.getArenaManager().isInGame(p)) {
+			if (plugin.getArenaManager().getArena(p).getSpectators().contains(p)) {
+				Location loc = e.getTo();
+				if (!plugin.prot.isInProtectedArena(loc)) {
+					e.setCancelled(true);
+				}
+			}
+		}
+	}
+	/*
+	 * END SPECTATOR STUFF
+	 */
+	
+	@EventHandler
+	public void onTeamWinGame(TeamWinGameEvent e) {
+		Team[] teams = e.getTeams();
+		Arena a = e.getArena();
+		int score = a.getScore(Teams.getTeamIdFromNAME(e.getTeamName()));
+		int verschil = 9999999;
+		
+		int i = 0;
+		for (Team t : teams) {
+			if (i == e.getTeamCount()) {
+				break;
+			}
+			
+			if (t != null) {
+				if (a.getScore(i) >= 0) {
+					if (Math.abs(score - a.getScore(i)) < verschil) {
+						verschil = Math.abs(score - a.getScore(i));
+					}
+				}
+			}
+			i++;
+		}
+		
+		int crystals = 25;
+		int extrac = 0;			
+		extrac = (int) ((((double) score) - ((double) verschil)) / ((double) score)) * 25;
+		if (extrac > 25) {
+			extrac = 25;
+		}
+		crystals += extrac;
+		
+		for (Player p : e.getPlayers()) {
+			int money = (int) (crystals * plugin.getConfig().getDouble("shop.crystal-multiplier"));
+			
+			double extra = Multipliers.getMultiplier("win",
+					plugin.economy.getLevel(p, "win", "crystals"), false);
+			
+			plugin.economy.getBalance().addCrystals(p, (int) (money * extra), false);
+			String message = plugin.economy.getCoinMessage(p, (int) (money * extra));
+			if (message != null) {
+				p.sendMessage(message);
+			}
+		}
+	}
+	
+	 @EventHandler(priority = EventPriority.HIGHEST)
 	 public void onPlayerToggleFlight(PlayerToggleFlightEvent event) {
 		 Player player = event.getPlayer();
 		 if (plugin.getArenaManager().isInGame(player)) {
 			 if (plugin.getArenaManager().getArena(player).canDoubleJump()) {
-				 if (player.getGameMode() != GameMode.CREATIVE) {
-					 event.setCancelled(true);
-					 player.setAllowFlight(false);
-					 player.setFlying(false);
-					 player.setVelocity(new Vector(player.getVelocity().getX(), 0.9518, player.getVelocity().getZ()));
-					 player.setVelocity(player.getVelocity().add(player.getLocation().getDirection().multiply(0.3018)));
-					 player.playSound(player.getLocation(), Sound.SHOOT_ARROW, 1F, 1F);
+				 if (!plugin.getArenaManager().getArena(player).getSpectators().contains(player)) {
+					 if (player.getGameMode() != GameMode.CREATIVE) {
+						 player.setVelocity(new Vector(player.getVelocity().getX(), 0.9518, player.getVelocity().getZ()));
+						 player.setVelocity(player.getVelocity().add(player.getLocation().getDirection().multiply(0.3018)));
+						 player.playSound(player.getLocation(), Sound.SHOOT_ARROW, 1F, 1F);
+						 player.setAllowFlight(false);
+						 player.setFlying(false);
+						 event.setCancelled(true);
+					 }
 				 }
 			 }
 		 }
@@ -151,13 +279,11 @@ public class PlayerListener implements Listener {
 		if (e.getEntity() instanceof Player) {
 			Player p = (Player) e.getEntity();
 			if (plugin.am.isInGame(p)) {
-				if (!plugin.am.getArena(p).isInGame()) {
+				if (!plugin.am.getArena(p).isInGame() || plugin.am.getArena(p).isEndGame()) {
 					e.setCancelled(true);
 				} else {
 					if (e.getCause() == DamageCause.FALL) {
 						e.setCancelled(true);
-					} else if (e.getCause() == DamageCause.LIGHTNING) {
-						p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 218, 1));
 					}
 				}
 			}
@@ -229,26 +355,26 @@ public class PlayerListener implements Listener {
 				e.getPlayer().hasPermission("crystalquest.arena.*") ||
 				e.getPlayer().hasPermission("crystalquest.staff") ||
 				e.getPlayer().hasPermission("crystalquest.admin")) {
-			if (e.getArena().getPlayers().size() == e.getArena().getMaxPlayers()) {
+			if (e.getArena().getPlayers().size() == e.getArena().getMaxPlayers() && !e.isSpectating()) {
 				e.setCancelled(true);
-				e.getPlayer().sendMessage(ChatColor.RED + "[!!] Couldn't join the arena, the arena is full!");
+				e.getPlayer().sendMessage(Broadcast.get("arena.full"));
 				return;
 			}
 			
-			if (e.getArena().isInGame()) {
+			if (e.getArena().isInGame() && !e.isSpectating()) {
 				e.setCancelled(true);
-				e.getPlayer().sendMessage(ChatColor.RED + "[!!] Couldn't join the arena, the game has already started!");
+				e.getPlayer().sendMessage(Broadcast.get("arena.already-started"));
 				return;
 			}
 			
-			if (e.getArena().getPlayers().size() + 1 == e.getArena().getMinPlayers()) {
+			if (e.getArena().getPlayers().size() + 1 == e.getArena().getMinPlayers() && !e.isSpectating()) {
 				e.getArena().setIsCounting(true);
 				e.getArena().setCountdown(plugin.getConfig().getInt("arena.countdown"));
 				return;
 			}
 			
 		} else {
-			e.getPlayer().sendMessage(ChatColor.RED + "[!!] You don't have permission to join this arena!");
+			e.getPlayer().sendMessage(Broadcast.get("arena.no-permission"));
 			e.setCancelled(true);
 			return;
 		}
@@ -263,7 +389,7 @@ public class PlayerListener implements Listener {
 			if (!e.getMessage().equalsIgnoreCase("/cq quit") && !e.getMessage().equalsIgnoreCase("/cq leave")) {
 				if (plugin.am.isInGame(e.getPlayer())) {
 					e.setCancelled(true);
-					e.getPlayer().sendMessage(ChatColor.RED + "[!!] You can't execute commands while in-game!");
+					e.getPlayer().sendMessage(Broadcast.get("arena.no-commands"));
 				}
 			}
 		}

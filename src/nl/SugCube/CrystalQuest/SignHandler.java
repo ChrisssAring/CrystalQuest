@@ -6,6 +6,7 @@ import java.util.List;
 import nl.SugCube.CrystalQuest.Game.Arena;
 import nl.SugCube.CrystalQuest.Game.ArenaManager;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Sign;
 
@@ -19,6 +20,19 @@ public class SignHandler {
 	public SignHandler(CrystalQuest instance, ArenaManager manager) {
 		plugin = instance;
 		am = manager;
+	}
+	
+	/**
+	 * Start a sign updater. When signs get stuck, this will fix it.
+	 * @param seconds (Integer) The amount of seconds between the updates.
+	 * @return void
+	 */
+	public void startSignUpdater(int seconds) {
+		Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+			public void run() {
+				updateSigns();
+			}
+		}, seconds * 20, seconds * 20);
 	}
 	
 	/**

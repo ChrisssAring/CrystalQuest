@@ -19,6 +19,7 @@ import nl.SugCube.CrystalQuest.SBA.SMeth;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -33,6 +34,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
@@ -49,6 +51,8 @@ public class Arena {
 	 * TEAM_ID=3: RED
 	 * TEAM_ID=4: BLUE
 	 * TEAM_ID=5: MAGENTA
+	 * TEAM_ID=6: WHITE
+	 * TEAM_ID=7: BLACK
 	 */
 	public CrystalQuest plugin;
 	private int maxPlayers = -1;
@@ -77,10 +81,12 @@ public class Arena {
 	private List<Location> crystalSpawns;
 	private List<Location> itemSpawns;
 	private List<Player> players;
+	private List<Player> spectators;
 	private HashMap<Player, Integer> playerTeams;
 	private HashMap<Entity, Location> crystalLocations;
 	private List<Block> gameBlocks;
 	private HashMap<Integer, List<Location>> teamSpawns;
+	private HashMap<Location, Player> landmines;
 	
 	private Inventory teamMenu;
 	
@@ -96,20 +102,20 @@ public class Arena {
 	 * @return void
 	 */
 	public Arena(CrystalQuest instance, int arenaId) {
-		this.teamMenu = Bukkit.createInventory(null, 9, "Pick Team");
 		this.plugin = instance;
 		this.score = Bukkit.getScoreboardManager().getNewScoreboard();
 		this.playerSpawns = new ArrayList<Location>();
 		this.crystalSpawns = new ArrayList<Location>();
 		this.itemSpawns = new ArrayList<Location>();
 		this.players = new ArrayList<Player>();
+		this.spectators = new ArrayList<Player>();
 		this.playerTeams = new HashMap<Player, Integer>();
 		this.timeLeft = plugin.getConfig().getInt("arena.game-length");
 		this.count = plugin.getConfig().getInt("arena.countdown");
 		this.isReady = false;
 		this.id = arenaId;
 		this.enabled = true;
-		this.lobbySpawn = new Location[6];
+		this.lobbySpawn = new Location[8];
 		this.isEndGame = false;
 		this.afterCount = plugin.getConfig().getInt("arena.after-count");
 		this.gameCrystals = new ArrayList<Entity>();
@@ -119,14 +125,28 @@ public class Arena {
 		this.gameWolfs = new ArrayList<Wolf>();
 		this.protection = new Location[2];
 		this.teamSpawns = new HashMap<Integer, List<Location>>();
-		this.teamSpawns.put(0, new ArrayList<Location>());
-		this.teamSpawns.put(1, new ArrayList<Location>());
-		this.teamSpawns.put(2, new ArrayList<Location>());
-		this.teamSpawns.put(3, new ArrayList<Location>());
-		this.teamSpawns.put(4, new ArrayList<Location>());
-		this.teamSpawns.put(5, new ArrayList<Location>());
+		this.landmines = new HashMap<Location, Player>();
+		for (int i = 0; i <= 7; i++) {
+			this.teamSpawns.put(i, new ArrayList<Location>());
+		}
 		this.doubleJump = false;
 		initializeScoreboard();
+	}
+	
+	/**
+	 * Get a list of players who are spectating the game.
+	 * @return (PlayerList) A list containing the spectators
+	 */
+	public List<Player> getSpectators() {
+		return this.spectators;
+	}
+	
+	/**
+	 * Get the hashmap containing the players who placed certain landmines.
+	 * @return (HashMap Location, Player)
+	 */
+	public HashMap<Location, Player> getLandmines() {
+		return this.landmines;
 	}
 	
 	/**
@@ -370,7 +390,7 @@ public class Arena {
 		this.enabled = isEnabled;
 		
 		for (Player p : this.getPlayers()) {
-			p.sendMessage(ChatColor.RED + "[!!] The arena has been disabled!");
+			p.sendMessage(Broadcast.get("arena.disabled"));
 		}
 		
 		if (!isEnabled) {
@@ -387,19 +407,19 @@ public class Arena {
 	 */
 	public String setReady() {
 		if (this.maxPlayers <= 0)
-			return "The maximum amount of players hasn't been set yet!";
+			return Broadcast.get("arena.ready-1");
 		else if (this.minPlayers <= 0)
-			return "The miniumum amount of players hasn't been set yet!";
+			return Broadcast.get("arena.ready-2");
 		else if (this.minPlayers > this.maxPlayers)
-			return "The minimum amount of players can't be greater than the maximum amount of players";
+			return Broadcast.get("arena.ready-3");
 		else if (this.teams <= 2)
-			return "There has to be a minimum of 2 teams!";
+			return Broadcast.get("arena.ready-4");
 		else if (this.name == "")
-			return "The arena han't had a name yet!";
+			return Broadcast.get("arena.ready-5");
 		else if (this.playerSpawns.size() == 0)
-			return "Set at least 1 spawnpoint for players!";
+			return Broadcast.get("arena.ready-6");
 		else if (this.crystalSpawns.size() == 0)
-			return "Set at least 1 spawnpoint for crystals!";
+			return Broadcast.get("arena.ready-7");
 		else
 			return null;
 	}
@@ -407,10 +427,10 @@ public class Arena {
 	/**
 	 * Updates the time in the scoreboardname
 	 * @param void
-	 * @return void
 	 */
 	public void updateTimer() {
-		this.points.setDisplayName(SMeth.setColours("&cTime Left &f" + SMeth.toTime(this.timeLeft)));
+		this.points.setDisplayName(SMeth.setColours("&c" + Broadcast.get("arena.time-left") + " &f" +
+				SMeth.toTime(this.timeLeft)));
 	}
 	
 	/**
@@ -419,30 +439,17 @@ public class Arena {
 	 * @return (IntegerList) The teams with the least amount of players.
 	 */
 	public List<Integer> getSmallestTeams() {
-		
 		int least = 99999;
 		List<Integer> list = new ArrayList<Integer>();
 		
-		for (Team t : this.sTeams) {
-			if (t != null) {
-				if (t.getPlayers().size() < least) {
-					least = t.getPlayers().size();
-				}
-			}
-		}
-		
-		int i = 0;
-		for (Team t : this.sTeams) {
-			if (t != null) {
-				if (t.getPlayers().size() == least && i < this.teams) {
-					list.add(i);
-				}
-				i++;
+		for (int i = 0; i < this.getTeamCount(); i++) {
+			if (this.sTeams[i].getPlayers().size() <= least) {
+				least = this.sTeams[i].getPlayers().size();
+				list.add(i);
 			}
 		}
 		
 		return list;
-		
 	}
 	
 	/**
@@ -453,8 +460,8 @@ public class Arena {
 	public void initializeScoreboard() {
 		
 		this.score = Bukkit.getScoreboardManager().getNewScoreboard();
-		this.sTeams = new Team[6];
-		this.sScore = new Score[6];
+		this.sTeams = new Team[8];
+		this.sScore = new Score[8];
 
 		this.sTeams[0] = this.score.registerNewTeam("Green");
 		this.sTeams[0].setPrefix(ChatColor.GREEN + "");
@@ -468,8 +475,12 @@ public class Arena {
 		this.sTeams[4].setPrefix(ChatColor.AQUA + "");
 		this.sTeams[5] = this.score.registerNewTeam("Magenta");
 		this.sTeams[5].setPrefix(ChatColor.LIGHT_PURPLE + "");
+		this.sTeams[6] = this.score.registerNewTeam("White");
+		this.sTeams[6].setPrefix(ChatColor.WHITE + "");
+		this.sTeams[7] = this.score.registerNewTeam("Black");
+		this.sTeams[7].setPrefix(ChatColor.BLACK + "");
 		
-		for (int i = 0; i <= 5; i++) {
+		for (int i = 0; i <= 7; i++) {
 			this.sTeams[i].setAllowFriendlyFire(false);
 		}
 		
@@ -487,6 +498,10 @@ public class Arena {
 			this.sScore[4] = this.points.getScore(Teams.BLUE);
 		if (this.teams >= 6)
 			this.sScore[5] = this.points.getScore(Teams.MAGENTA);
+		if (this.teams >= 7)
+			this.sScore[6] = this.points.getScore(Teams.WHITE);
+		if (this.teams >= 8)
+			this.sScore[7] = this.points.getScore(Teams.BLACK);
 		
 		for (Score s : sScore) {
 			if (s != null) {
@@ -585,11 +600,19 @@ public class Arena {
 				winningTeam = Teams.MAGENTA_NAME;
 				colour = ChatColor.LIGHT_PURPLE;
 				teamId = 5;
+			} else if (hScore.getPlayer().getName().equalsIgnoreCase(Teams.WHITE_NAME)) {
+				winningTeam = Teams.WHITE_NAME;
+				colour = ChatColor.WHITE;
+				teamId = 6;
+			} else if (hScore.getPlayer().getName().equalsIgnoreCase(Teams.BLACK_NAME)) {
+				winningTeam = Teams.BLACK_NAME;
+				colour = ChatColor.DARK_GRAY;
+				teamId = 7;
 			}
 			
 			for (Player p : this.getPlayers()) {
 				p.sendMessage(colour + "<>---------------------------<>");
-				p.sendMessage("    " + winningTeam + " won the quest!");
+				p.sendMessage("    " + winningTeam + " " + Broadcast.get("arena.won"));
 				p.sendMessage(colour + "<>---------------------------<>");
 				
 				if (plugin.am.getTeam(p) == teamId) {
@@ -597,7 +620,9 @@ public class Arena {
 				}
 			}
 		
-			Bukkit.getPluginManager().callEvent(new TeamWinGameEvent(winningPlayers, this, teamId));
+			Bukkit.getPluginManager().callEvent(new TeamWinGameEvent(winningPlayers, this, teamId, this.getTeamCount(),
+					this.sTeams, winningTeam));
+			
 			return winningTeam;
 		}
 		
@@ -669,9 +694,10 @@ public class Arena {
 		this.crystalLocations.clear();
 		this.gameBlocks.clear();
 		initializeScoreboard();
-		plugin.signHandler.updateSigns();
 		this.gameWolfs.clear();
+		this.landmines.clear();
 		removePlayers();
+		plugin.signHandler.updateSigns();
 	}
 	
 	/**
@@ -696,10 +722,10 @@ public class Arena {
 				t.removePlayer((OfflinePlayer) p);
 			}
 		}
-		p.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
-		this.playerTeams.remove(p);
-		plugin.im.restoreInventory(p);
-		plugin.im.playerClass.remove(p);
+		
+		for (PotionEffect pe : p.getActivePotionEffects()) {
+			p.removePotionEffect(pe.getType());
+		}
 		
 		try {
 			p.teleport(plugin.am.getLobby());
@@ -707,10 +733,16 @@ public class Arena {
 			plugin.getLogger().info("Lobby-spawn not set!");
 		}
 		
-		for (PotionEffect pe : p.getActivePotionEffects()) {
-			p.removePotionEffect(pe.getType());
-		}
+		p.removePotionEffect(PotionEffectType.INVISIBILITY);
+		p.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+		this.playerTeams.remove(p);
+		plugin.im.restoreInventory(p);
+		plugin.im.playerClass.remove(p);
+		this.spectators.remove(p);
 		
+		if (p.getGameMode() != GameMode.CREATIVE) {
+			p.setAllowFlight(false);
+		}
 		p.setFireTicks(0);
 		Bukkit.getPluginManager().callEvent(new PlayerLeaveArenaEvent(p, this));
 	}
@@ -720,35 +752,59 @@ public class Arena {
 	 * scoreboard and give the in-game inventory.
 	 * @param p (Player) The player to add
 	 * @param teamId (int) The team to put the player in
-	 * @return (boolean) True if joined, False if not joined.
+	 * @param spectate (boolean) True if the player is spectating
+	 * @return (boolean) True if joined, False if not joined
 	 */
-	public boolean addPlayer(Player p, int teamId) {
-		PlayerJoinArenaEvent event = new PlayerJoinArenaEvent(p, this);
+	public boolean addPlayer(Player p, int teamId, boolean spectate) {
+		PlayerJoinArenaEvent event = new PlayerJoinArenaEvent(p, this, spectate);
 		Bukkit.getPluginManager().callEvent(event);
 		if (!event.isCancelled()) {
-			if (!this.isFull()) {
+			if (!this.isFull() || plugin.getArenaManager().getArena(p).getSpectators().contains(p)) {
 				if (this.isEnabled()) {
 					try {
-						this.players.add(p);
-						this.playerTeams.put(p, teamId);
-						this.sTeams[teamId].addPlayer((OfflinePlayer) p);
+						if (!spectate) {
+							this.players.add(p);
+							this.playerTeams.put(p, teamId);
+							this.sTeams[teamId].addPlayer((OfflinePlayer) p);
+						}
+						p.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
 						p.setScoreboard(this.score);
 						plugin.im.setInGameInventory(p);
 						
-						try {
-							if (this.getLobbySpawns()[teamId] == null) {
-								p.teleport(this.getLobbySpawns()[0]);
+						if (spectate) {
+							p.setAllowFlight(true);
+							this.getSpectators().add(p);
+							p.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 99999, 4));
+							p.sendMessage(Broadcast.TAG + Broadcast.get("arena.spectate")
+									.replace("%arena%", this.getName()));
+						}
+						
+						if (!spectate) {
+							try {
+								if (this.getLobbySpawns()[teamId] == null) {
+									p.teleport(this.getLobbySpawns()[0]);
+								} else {
+									p.teleport(this.getLobbySpawns()[teamId]);
+								}
+							} catch (Exception e) { }
+						} else {
+							if (this.getPlayerSpawns().size() > 0) {
+								p.teleport(this.getPlayerSpawns().get(0));
 							} else {
-								p.teleport(this.getLobbySpawns()[teamId]);
+								p.teleport(this.getTeamSpawns().get(0).get(0));
 							}
-						} catch (Exception e) { }
+						}
 						
 						plugin.menuPT.updateMenu(this);
 						
-						for (Player player : this.getPlayers()) {
-							player.sendMessage(Broadcast.TAG + Teams.getTeamChatColour(teamId) + p.getName() + ChatColor.YELLOW +
-									" joined the game (" + this.getPlayers().size() + "/" + this.getMaxPlayers() + ")");
+						if (!spectate) {
+							for (Player player : this.getPlayers()) {
+								player.sendMessage(Broadcast.TAG + Broadcast.get("arena.join")
+										.replace("%player%", Teams.getTeamChatColour(teamId) + p.getName())
+										.replace("%count%", "(" + this.getPlayers().size() + "/" + this.getMaxPlayers() + ")"));
+							}
 						}
+						
 						plugin.signHandler.updateSigns();
 						return true;
 					} catch (Exception e) {
@@ -756,10 +812,10 @@ public class Arena {
 						return false;
 					}
 				} else {
-					p.sendMessage(ChatColor.RED + "[!!] This arena has been disabled!");
+					p.sendMessage(Broadcast.get("arena.disabled"));
 				}
 			} else {
-				p.sendMessage(ChatColor.RED + "[!!] Sorry, this arena is full!");
+				p.sendMessage(Broadcast.get("arena.full"));
 			}
 		}
 		return false;
@@ -784,6 +840,22 @@ public class Arena {
 			} catch (Exception e) { }
 		}
 		this.players.clear();
+		
+		for (Player p : this.getSpectators()) {
+			try {
+				p.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+				plugin.im.restoreInventory(p);
+				try {
+					p.teleport(plugin.am.getLobby());
+				} catch (Exception e) {
+					plugin.getLogger().info("Lobby-spawn not set!");
+				} finally {
+					p.removePotionEffect(PotionEffectType.INVISIBILITY);
+				}
+				plugin.signHandler.updateSigns();
+			} catch (Exception e) { }
+		}
+		this.spectators.clear();
 		
 		for (Team t : this.sTeams) {
 			for (OfflinePlayer op : t.getPlayers()) {
@@ -1075,7 +1147,7 @@ public class Arena {
 	
 	/**
 	 * Sets the lobby spawns of the teams.
-	 * The team-id (0, 1, 2, 3, 4, 5) represents the spawn of the specific team.
+	 * The team-id (0, 1, 2, 3, 4, 5, 6, 7) represents the spawn of the specific team.
 	 * @param locations (Location[]) The locations.
 	 * @return void
 	 */
@@ -1085,7 +1157,7 @@ public class Arena {
 	
 	/**
 	 * Gets the team-lobby spawns of the arena.
-	 * The team-id (0, 1, 2, 3, 4, 5) represents the spawn of the specific team.
+	 * The team-id (0, 1, 2, 3, 4, 5, 6, 7) represents the spawn of the specific team.
 	 * @param void
 	 * @return (Location[]) The lobbyspawn-array
 	 */
@@ -1114,7 +1186,7 @@ public class Arena {
 	/**
 	 * Gets the arena ID.
 	 * @param void
-	 * @return (int) The arena ID (0-5)
+	 * @return (int) The arena ID
 	 */
 	public int getId() {
 		return this.id;
@@ -1143,6 +1215,8 @@ public class Arena {
 		
 		if (plugin.am.getArena(name) == null) {
 			this.name = name;
+			this.teamMenu = Bukkit.createInventory(null, 9, "Pick Team: " + this.getName());
+			plugin.menuPT.updateMenu(this);
 			return true;
 		} else {
 			return false;
@@ -1155,7 +1229,7 @@ public class Arena {
 	 * @return (boolean) true if applied succesful, false if amountOfTeams is greater than 6.
 	 */
 	public boolean setTeams(int amountOfTeams) {
-		if (amountOfTeams > 6) {
+		if (amountOfTeams > 8) {
 			return false;
 		} else {
 			this.teams = amountOfTeams;
@@ -1216,10 +1290,6 @@ public class Arena {
 	public void startGame() {
 		this.setInGame(true);
 		
-		for (Player p : this.getPlayers()) {
-			plugin.im.setClassInventory(p);
-		}
-		
 		Random ran = new Random();
 		
 		for (Player p : this.getPlayers()) {
@@ -1264,7 +1334,11 @@ public class Arena {
 	 * @return (int) The score
 	 */
 	public int getScore(int teamId) {
-		return this.sScore[teamId].getScore();
+		if (this.sScore == null) {
+			return -1;
+		} else {
+			return this.sScore[teamId].getScore();
+		}
 	}
 	
 }

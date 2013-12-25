@@ -63,6 +63,9 @@ public class StringHandler {
 			if (item.length >= 13) {
 				is.addUnsafeEnchantment(SEnch.toEnchantment(item[11]), Integer.parseInt(item[12]));
 			}
+			if (item.length >= 15) {
+				is.addUnsafeEnchantment(SEnch.toEnchantment(item[13]), Integer.parseInt(item[14]));
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
