@@ -73,7 +73,7 @@ public class ItemListener implements Listener {
 	}
 	
 	@SuppressWarnings("deprecation")
-	@EventHandler(priority = EventPriority.HIGH)
+	@EventHandler
 	public void onPlayerInteract(PlayerInteractEvent e) {
 		Player p = e.getPlayer();
 		if (plugin.getArenaManager().isInGame(p)) {
@@ -396,44 +396,51 @@ public class ItemListener implements Listener {
 						}
 					}
 				}
-			}
-			/*
-			 * CHECKS FOR LANDMINES
-			 */
-			else if (e.getAction() == Action.PHYSICAL) {
-				Block b = e.getClickedBlock();
-				Location loc = p.getLocation(); 
-				b.getWorld().createExplosion(loc.getX(), loc.getY(), loc.getZ(), 2.0F, false, false);
-				Arena a = plugin.getArenaManager().getArena(p);
-				if (a != null) {
-					a.getGameBlocks().remove(b);
-					b.setType(Material.AIR);
-					DeathMessages.fired = true;
-					a.sendDeathMessage(p, " stood on a landmine");
-					if (p.getHealth() > 0) {
-						p.setHealth(0);
-					}
-					
-					if (a.getLandmines().containsKey(b.getLocation())) {
-						Player killer = a.getLandmines().get(b.getLocation());
-						a.getLandmines().remove(b.getLocation());
-						
-						if (killer != null && !a.isEndGame() && killer != p) {
-							Random ran = new Random();
-							double chance = Multipliers.getMultiplier("blood",
-									plugin.economy.getLevel(killer, "blood", "crystals"), false);
-							int multiplier = 1;
-							
-							if (ran.nextInt(100) <= chance * 100 && chance != 0) {
-								multiplier = 2;
-							}
-							
-							//Adds crystals to their balance
-							int money = (int) (1 * plugin.getConfig().getDouble("shop.crystal-multiplier"));
-							plugin.economy.getBalance().addCrystals(killer, money * multiplier, false);
-							String message = plugin.economy.getCoinMessage(killer, money * multiplier);
-							if (message != null) {
-								killer.sendMessage(message);
+				/*
+				 * CHECKS FOR LANDMINES
+				 */
+				else if (e.getAction() == Action.PHYSICAL) {
+					Bukkit.broadcastMessage("Fires3");
+					if (e.getClickedBlock().getType() == Material.STONE_PLATE) {
+						Bukkit.broadcastMessage("Fires2");
+						if (!plugin.getArenaManager().getArena(p).getSpectators().contains(p)) {
+							Bukkit.broadcastMessage("Fires");
+							Block b = e.getClickedBlock();
+							Location loc = p.getLocation(); 
+							b.getWorld().createExplosion(loc.getX(), loc.getY(), loc.getZ(), 2.0F, false, false);
+							Arena a = plugin.getArenaManager().getArena(p);
+							if (a != null) {
+								a.getGameBlocks().remove(b);
+								b.setType(Material.AIR);
+								DeathMessages.fired = true;
+								a.sendDeathMessage(p, " stood on a landmine");
+								if (p.getHealth() > 0) {
+									p.setHealth(0);
+								}
+								
+								if (a.getLandmines().containsKey(b.getLocation())) {
+									Player killer = a.getLandmines().get(b.getLocation());
+									a.getLandmines().remove(b.getLocation());
+									
+									if (killer != null && !a.isEndGame() && killer != p) {
+										Random ran = new Random();
+										double chance = Multipliers.getMultiplier("blood",
+												plugin.economy.getLevel(killer, "blood", "crystals"), false);
+										int multiplier = 1;
+										
+										if (ran.nextInt(100) <= chance * 100 && chance != 0) {
+											multiplier = 2;
+										}
+										
+										//Adds crystals to their balance
+										int money = (int) (1 * plugin.getConfig().getDouble("shop.crystal-multiplier"));
+										plugin.economy.getBalance().addCrystals(killer, money * multiplier, false);
+										String message = plugin.economy.getCoinMessage(killer, money * multiplier);
+										if (message != null) {
+											killer.sendMessage(message);
+										}
+									}
+								}
 							}
 						}
 					}

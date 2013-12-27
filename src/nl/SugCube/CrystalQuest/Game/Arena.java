@@ -12,6 +12,7 @@ import java.util.Random;
 import nl.SugCube.CrystalQuest.Broadcast;
 import nl.SugCube.CrystalQuest.CrystalQuest;
 import nl.SugCube.CrystalQuest.Teams;
+import nl.SugCube.CrystalQuest.Events.ArenaStartEvent;
 import nl.SugCube.CrystalQuest.Events.PlayerJoinArenaEvent;
 import nl.SugCube.CrystalQuest.Events.PlayerLeaveArenaEvent;
 import nl.SugCube.CrystalQuest.Events.TeamWinGameEvent;
@@ -1288,22 +1289,26 @@ public class Arena {
 	 * @return void
 	 */
 	public void startGame() {
-		this.setInGame(true);
-		
-		Random ran = new Random();
-		
-		for (Player p : this.getPlayers()) {
-			boolean isTeamSpawns = false;
-			for (int i = 0; i < this.getTeamCount(); i++) {
-				if (this.getTeamSpawns().get(i).size() > 0) {
-					isTeamSpawns = true;
+		ArenaStartEvent e = new ArenaStartEvent(this);
+		Bukkit.getPluginManager().callEvent(e);
+		if (!e.isCancelled()) {
+			this.setInGame(true);
+			
+			Random ran = new Random();
+			
+			for (Player p : this.getPlayers()) {
+				boolean isTeamSpawns = false;
+				for (int i = 0; i < this.getTeamCount(); i++) {
+					if (this.getTeamSpawns().get(i).size() > 0) {
+						isTeamSpawns = true;
+					}
 				}
-			}
-			if (isTeamSpawns) {
-				int team = this.getTeam(p);
-				p.teleport(this.getTeamSpawns().get(team).get(ran.nextInt(this.getTeamSpawns().get(team).size())));
-			} else {
-				p.teleport((this.getPlayerSpawns().get(ran.nextInt(this.getPlayerSpawns().size()))));
+				if (isTeamSpawns) {
+					int team = this.getTeam(p);
+					p.teleport(this.getTeamSpawns().get(team).get(ran.nextInt(this.getTeamSpawns().get(team).size())));
+				} else {
+					p.teleport((this.getPlayerSpawns().get(ran.nextInt(this.getPlayerSpawns().size()))));
+				}
 			}
 		}
 	}

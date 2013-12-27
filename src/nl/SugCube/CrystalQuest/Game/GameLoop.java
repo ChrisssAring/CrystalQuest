@@ -6,10 +6,12 @@ import nl.SugCube.CrystalQuest.Broadcast;
 import nl.SugCube.CrystalQuest.CrystalQuest;
 import nl.SugCube.CrystalQuest.Teams;
 import nl.SugCube.CrystalQuest.Economy.Multipliers;
+import nl.SugCube.CrystalQuest.Events.ArenaTickEvent;
 import nl.SugCube.CrystalQuest.SBA.SMeth;
 
 import org.bukkit.FireworkEffect;
 import org.bukkit.FireworkEffect.Type;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Firework;
@@ -39,6 +41,9 @@ public class GameLoop implements Runnable {
 					/*
 					 * Arena Countdown
 					 */
+					ArenaTickEvent event = new ArenaTickEvent(a, a.getCountdown(), a.getCountdown() - 1, false);
+					Bukkit.getPluginManager().callEvent(event);
+					
 					for (Player pl : a.getPlayers()) {
 						pl.setLevel(a.getCountdown());
 					}
@@ -91,6 +96,9 @@ public class GameLoop implements Runnable {
 				 */
 					
 					if (a.getTimeLeft() > 0) {
+						
+						ArenaTickEvent event = new ArenaTickEvent(a, a.getTimeLeft(), a.getTimeLeft() - 1, true);
+						Bukkit.getPluginManager().callEvent(event);
 						
 						for (Player p : a.getPlayers()) {
 							for (ItemStack is : p.getInventory().getContents()) {

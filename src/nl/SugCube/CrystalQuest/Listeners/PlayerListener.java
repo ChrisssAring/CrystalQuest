@@ -284,6 +284,8 @@ public class PlayerListener implements Listener {
 				} else {
 					if (e.getCause() == DamageCause.FALL) {
 						e.setCancelled(true);
+					} else if (e.getCause() == DamageCause.LIGHTNING) {
+						p.setFireTicks(80);
 					}
 				}
 			}

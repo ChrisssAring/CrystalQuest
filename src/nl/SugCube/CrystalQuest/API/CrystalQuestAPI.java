@@ -21,7 +21,7 @@ public class CrystalQuestAPI {
 	 * and do what you want :)
 	 * @return (Economy)
 	 */
-	public Economy getEconomy() {
+	public static Economy getEconomy() {
 		return plugin.economy;
 	}
 	
@@ -30,7 +30,7 @@ public class CrystalQuestAPI {
 	 * @param loc (Location) The location to check for
 	 * @return (boolean) True if within, false if not
 	 */
-	public boolean isInProtectedArena(Location loc) {
+	public static boolean isInProtectedArena(Location loc) {
 		return plugin.prot.isInProtectedArena(loc);
 	}
 	
@@ -38,7 +38,7 @@ public class CrystalQuestAPI {
 	 * Gets the class managing the items
 	 * @return (ItemHandler)
 	 */
-	public ItemHandler getItemHandler() {
+	public static ItemHandler getItemHandler() {
 		return plugin.itemHandler;
 	}
 	
@@ -46,7 +46,7 @@ public class CrystalQuestAPI {
 	 * Gets the class handling the arenas
 	 * @return (ArenaManager)
 	 */
-	public ArenaManager getArenaManager() {
+	public static ArenaManager getArenaManager() {
 		return plugin.getArenaManager();
 	}
 	

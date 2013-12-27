@@ -175,13 +175,6 @@ public class CrystalQuest extends JavaPlugin {
 			}
 		}
 		
-		/*
-		 * Reset all arenas
-		 */
-		for (Arena a : am.getArenas()) {
-			a.resetArena();
-		}
-		
 		LoadData.loadSigns();		//Load the lobby-signs
 		
 		Broadcast.setMessages();	
@@ -205,6 +198,13 @@ public class CrystalQuest extends JavaPlugin {
 		 */
 		for (Arena a : am.arena) {			
 			a.removePlayers();
+		}
+		
+		/*
+		 * Reset all arenas
+		 */
+		for (Arena a : am.getArenas()) {
+			a.resetArena();
 		}
 		
 		this.getLogger().info("[CrystalQuest] CrystalQuest v" + pdfFile.getVersion() + " has been disabled!");
@@ -313,6 +313,15 @@ public class CrystalQuest extends JavaPlugin {
 	    } catch (Exception ex) {
 	        this.getLogger().log(Level.SEVERE, "Could not save " + langFile, ex);
 	    }
+	}
+	
+	/**
+	 * Gets the InventoryManager of the plugin
+	 * @param void
+	 * @return (InventoryManager) The plugin's inventory manager.
+	 */
+	public InventoryManager getInventoryManager() {
+		return this.im;
 	}
 	
 	/**
