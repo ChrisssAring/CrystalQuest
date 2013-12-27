@@ -1,8 +1,5 @@
 CrystalQuest Beta 0.3
 ====================================================
-!!!BEWARE!!! The beta 0.3 commit contains some upcoming features (not done) for 0.4!!! Therefor YOU SHOULDNT USE THIS BUILD for further purposes.
-
-
 A PvP-stylish minigame made by MrSugarCaney
 
 A minigame where every Crystal counts!
