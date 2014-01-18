@@ -101,7 +101,6 @@ public class SItem {
 		case 92: return Material.CAKE_BLOCK;
 		case 93: return Material.DIODE_BLOCK_OFF;
 		case 94: return Material.DIODE_BLOCK_ON;
-		case 95: return Material.LOCKED_CHEST;
 		case 96: return Material.TRAP_DOOR;
 		case 97: return Material.MONSTER_EGGS;
 		case 98: return Material.SMOOTH_BRICK;
@@ -443,7 +442,6 @@ public class SItem {
 		case "cakeblock": return Material.CAKE_BLOCK;
 		case "repeateroff": return Material.DIODE_BLOCK_OFF;
 		case "repeateron": return Material.DIODE_BLOCK_ON;
-		case "lockedchest": return Material.LOCKED_CHEST;
 		case "trapdoor": return Material.TRAP_DOOR;
 		case "monsteregg": return Material.MONSTER_EGGS;
 		case "smoothstonebrick": return Material.SMOOTH_BRICK;
@@ -785,7 +783,6 @@ public static int toId(Material material) {
 		case CAKE_BLOCK: return 92;
 		case DIODE_BLOCK_OFF: return 93;
 		case DIODE_BLOCK_ON: return 94;
-		case LOCKED_CHEST: return 95;
 		case TRAP_DOOR: return 96;
 		case MONSTER_EGGS: return 97;
 		case SMOOTH_BRICK: return 98;

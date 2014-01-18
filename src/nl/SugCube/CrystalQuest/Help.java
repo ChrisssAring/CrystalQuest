@@ -49,6 +49,10 @@ public class Help {
 		s.sendMessage(Broadcast.HELP + "/cq balance <player>" + ChatColor.YELLOW + " " + Broadcast.get("help.balance"));
 		s.sendMessage(Broadcast.HELP + "/cq shop" + ChatColor.YELLOW + " " + Broadcast.get("help.shop"));
 		
+		if (s.hasPermission("crystalquest.changeclass") || s.hasPermission("crystalquest.staff") ||
+				s.hasPermission("crystalquest.admin")) {
+			s.sendMessage(Broadcast.HELP + "/cq class" + ChatColor.YELLOW + " " + Broadcast.get("help.class"));
+		}
 		if (s.hasPermission("crystalquest.enable") || s.hasPermission("crystalquest.staff") ||
 				s.hasPermission("crystalquest.admin")) {
 			s.sendMessage(Broadcast.HELP + "/cq enable <arena>" + ChatColor.YELLOW + " " + Broadcast.get("help.enable"));
@@ -67,6 +71,9 @@ public class Help {
 		}
 		if (s.hasPermission("crystalquest.admin")) {
 			s.sendMessage(Broadcast.HELP + "/cq money <player> <amount>" + ChatColor.YELLOW + " " + Broadcast.get("help.money"));
+		}
+		if (s.hasPermission("crystalquest.admin")) {
+			s.sendMessage(Broadcast.HELP + "/cq removearena" + ChatColor.YELLOW + " " + Broadcast.get("help.remove"));
 		}
 		if (s.hasPermission("crystalquest.admin")) {
 			s.sendMessage(Broadcast.HELP + "/cq reload" + ChatColor.YELLOW + " " + Broadcast.get("help.reload"));

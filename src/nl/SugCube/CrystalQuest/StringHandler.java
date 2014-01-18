@@ -1,9 +1,12 @@
 package nl.SugCube.CrystalQuest;
 
+import nl.SugCube.CrystalQuest.Items.WandType;
 import nl.SugCube.CrystalQuest.SBA.SEnch;
 import nl.SugCube.CrystalQuest.SBA.SItem;
+import nl.SugCube.CrystalQuest.SBA.SMeth;
 
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 public class StringHandler {
 
@@ -41,12 +44,22 @@ public class StringHandler {
 		try {			
 			String[] item = s.split(",");
 			
-			if (item.length == 1) {
-				is = new ItemStack(SItem.toMaterial(item[0]), 1);
+			if (item[0].split(";")[0].equalsIgnoreCase("wand_fire")) {
+				is = plugin.wand.getWand(WandType.MAGMA);
+			} else if (item[0].split(";")[0].equalsIgnoreCase("wand_ender")) {
+				is = plugin.wand.getWand(WandType.TELEPORT);
+			} else if (item[0].split(";")[0].equalsIgnoreCase("wand_healing")) {
+				is = plugin.wand.getWand(WandType.HEAL);
+			} else if (item[0].split(";")[0].equalsIgnoreCase("wand_ice")) {
+				is = plugin.wand.getWand(WandType.FREEZE);
+			} else if (item[0].split(";")[0].equalsIgnoreCase("wand_wither")) {
+				is = plugin.wand.getWand(WandType.WITHER);
+			} else if (item.length == 1) {
+				is = new ItemStack(SItem.toMaterial(item[0].split(";")[0]), 1);
 			} else if (item.length == 2) {
-				is = new ItemStack(SItem.toMaterial(item[0]), Integer.parseInt(item[1]));
+				is = new ItemStack(SItem.toMaterial(item[0].split(";")[0]), Integer.parseInt(item[1]));
 			} else if (item.length >= 3) {
-				is = new ItemStack(SItem.toMaterial(item[0]), Integer.parseInt(item[1]), Short.parseShort(item[2]));
+				is = new ItemStack(SItem.toMaterial(item[0].split(";")[0]), Integer.parseInt(item[1]), Short.parseShort(item[2]));
 			}
 			if (item.length >= 5) {
 				is.addUnsafeEnchantment(SEnch.toEnchantment(item[3]), Integer.parseInt(item[4]));
@@ -66,6 +79,13 @@ public class StringHandler {
 			if (item.length >= 15) {
 				is.addUnsafeEnchantment(SEnch.toEnchantment(item[13]), Integer.parseInt(item[14]));
 			}
+			
+			if (item[0].split(";").length > 1) {
+				ItemMeta im = is.getItemMeta();
+				im.setDisplayName(SMeth.setColours(item[0].split(";")[1]));
+				is.setItemMeta(im);
+			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

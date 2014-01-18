@@ -24,7 +24,9 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.EnderCrystal;
 import org.bukkit.entity.Entity;
@@ -95,6 +97,7 @@ public class Arena {
 	private Team[] sTeams;
 	private Objective points;
 	private Score[] sScore;
+	private Team spectatorTeam;
 	
 	/**
 	 * CONSTRUCTOR
@@ -395,7 +398,7 @@ public class Arena {
 		}
 		
 		if (!isEnabled) {
-			this.resetArena();
+			this.resetArena(false);
 		}
 		
 		plugin.signHandler.updateSigns();
@@ -435,19 +438,34 @@ public class Arena {
 	}
 	
 	/**
+	 * Sets the menu from which the players choose their teams.
+	 * @param inv (Inventory) Inventory to set it to.
+	 */
+	public void setTeamMenu(Inventory inv) {
+		this.teamMenu = inv;
+	}
+	
+	/**
 	 * Gets the teams with the least amount of players for a fair distribution process.
 	 * @param void
 	 * @return (IntegerList) The teams with the least amount of players.
 	 */
 	public List<Integer> getSmallestTeams() {
-		int least = 99999;
 		List<Integer> list = new ArrayList<Integer>();
 		
+		int least = 999999;
 		for (int i = 0; i < this.getTeamCount(); i++) {
-			if (this.sTeams[i].getPlayers().size() <= least) {
-				least = this.sTeams[i].getPlayers().size();
-				list.add(i);
+			if (this.getTeams()[i].getPlayers().size() < least) {
+				least = this.getTeams()[i].getPlayers().size();
 			}
+		}
+		
+		int count = 0;
+		for (Team t : this.getTeams()) {
+			if (t.getPlayers().size() == least && count < this.getTeamCount()) {
+				list.add(count);
+			}
+			count++;
 		}
 		
 		return list;
@@ -463,7 +481,11 @@ public class Arena {
 		this.score = Bukkit.getScoreboardManager().getNewScoreboard();
 		this.sTeams = new Team[8];
 		this.sScore = new Score[8];
-
+		
+		this.spectatorTeam = this.score.registerNewTeam("Spectate");
+		this.spectatorTeam.setAllowFriendlyFire(false);
+		this.spectatorTeam.setCanSeeFriendlyInvisibles(true);
+		this.spectatorTeam.setPrefix(ChatColor.BLUE + "[Spec] ");
 		this.sTeams[0] = this.score.registerNewTeam("Green");
 		this.sTeams[0].setPrefix(ChatColor.GREEN + "");
 		this.sTeams[1] = this.score.registerNewTeam("Orange");
@@ -637,51 +659,52 @@ public class Arena {
 	 * Removes the players,
 	 * Re-initializes scoreboard.
 	 * Sends a "this-team-won" message
-	 * @param void
+	 * @param onEnable (boolean) If it's called in onEnable.
 	 * @return void
 	 */
-	public void resetArena() {
-		
-		//Removes all potion-effects on players
-		if (this.getPlayers().size() > 0) {
-			for (Player p : this.getPlayers()) {
-				Collection<PotionEffect> eff = p.getActivePotionEffects();
-				for (PotionEffect ef : eff) {
-					p.removePotionEffect(ef.getType());
-				}
-			}
-		}
-		//Removes all blocks placed in-game
-		if (this.getGameBlocks().size() > 0) {
-			List<Block> toRemove = new ArrayList<Block>();
-			for (Block b : this.getGameBlocks()) {
-				toRemove.add(b);
-			}
-			for (Block b : toRemove) {
-				b.setType(Material.AIR);
-			}
-		}
-		//Removs all wolfs
-		if (this.getGameWolfs().size() > 0) {
-			for (Wolf w : this.getGameWolfs()) {
-				if (w != null) {
-					w.setHealth(0);
-				}
-			}
-		}
-		//Removes all items
-		if (this.getCrystalSpawns().size() > 0) {
-			List<Entity> toRemove = new ArrayList<Entity>();
-			for (Entity e : this.getCrystalSpawns().get(0).getWorld().getEntities()) {
-				if ((e instanceof Item || e instanceof ExperienceOrb || e instanceof EnderCrystal ||
-						e instanceof LivingEntity) && !(e instanceof Player)) {
-					if (plugin.prot.isInProtectedArena(e.getLocation())) {
-						toRemove.add(e);
+	public void resetArena(boolean onEnable) {
+		if (!onEnable) {
+			//Removes all potion-effects on players
+			if (this.getPlayers().size() > 0) {
+				for (Player p : this.getPlayers()) {
+					Collection<PotionEffect> eff = p.getActivePotionEffects();
+					for (PotionEffect ef : eff) {
+						p.removePotionEffect(ef.getType());
 					}
 				}
 			}
-			for (Entity e : toRemove) {
-				e.remove();
+			//Removes all blocks placed in-game
+			if (this.getGameBlocks().size() > 0) {
+				List<Block> toRemove = new ArrayList<Block>();
+				for (Block b : this.getGameBlocks()) {
+					toRemove.add(b);
+				}
+				for (Block b : toRemove) {
+					b.setType(Material.AIR);
+				}
+			}
+			//Removs all wolfs
+			if (this.getGameWolfs().size() > 0) {
+				for (Wolf w : this.getGameWolfs()) {
+					if (w != null) {
+						w.setHealth(0);
+					}
+				}
+			}
+			//Removes all items and 
+			if (this.getCrystalSpawns().size() > 0) {
+				List<Entity> toRemove = new ArrayList<Entity>();
+				for (Entity e : this.getCrystalSpawns().get(0).getWorld().getEntities()) {
+					if ((e instanceof Item || e instanceof ExperienceOrb || e instanceof Arrow || e instanceof EnderCrystal ||
+							e instanceof LivingEntity) && !(e instanceof Player)) {
+						if (plugin.prot.isInProtectedArena(e.getLocation())) {
+							toRemove.add(e);
+						}
+					}
+				}
+				for (Entity e : toRemove) {
+					e.remove();
+				}
 			}
 		}
 		
@@ -698,6 +721,7 @@ public class Arena {
 		this.gameWolfs.clear();
 		this.landmines.clear();
 		removePlayers();
+		
 		plugin.signHandler.updateSigns();
 	}
 	
@@ -744,8 +768,16 @@ public class Arena {
 		if (p.getGameMode() != GameMode.CREATIVE) {
 			p.setAllowFlight(false);
 		}
+		
+		plugin.ab.getAbilities().remove(p);
 		p.setFireTicks(0);
 		Bukkit.getPluginManager().callEvent(new PlayerLeaveArenaEvent(p, this));
+		
+		if (this.spectatorTeam.getPlayers().contains(p)) {
+			this.spectatorTeam.removePlayer(p);
+		}
+		
+		plugin.signHandler.updateSigns();
 	}
 	
 	/**
@@ -763,9 +795,10 @@ public class Arena {
 			if (!this.isFull() || plugin.getArenaManager().getArena(p).getSpectators().contains(p)) {
 				if (this.isEnabled()) {
 					try {
+						this.playerTeams.put(p, spectate ? -1 : teamId);
+						
 						if (!spectate) {
-							this.players.add(p);
-							this.playerTeams.put(p, teamId);
+							this.players.add(p);	
 							this.sTeams[teamId].addPlayer((OfflinePlayer) p);
 						}
 						p.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
@@ -775,9 +808,10 @@ public class Arena {
 						if (spectate) {
 							p.setAllowFlight(true);
 							this.getSpectators().add(p);
-							p.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 99999, 4));
+							p.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 127));
 							p.sendMessage(Broadcast.TAG + Broadcast.get("arena.spectate")
 									.replace("%arena%", this.getName()));
+							this.spectatorTeam.addPlayer(p);
 						}
 						
 						if (!spectate) {
@@ -837,7 +871,7 @@ public class Arena {
 				} catch (Exception e) {
 					plugin.getLogger().info("Lobby-spawn not set!");
 				}
-				plugin.signHandler.updateSigns();
+				
 			} catch (Exception e) { }
 		}
 		this.players.clear();
@@ -853,7 +887,7 @@ public class Arena {
 				} finally {
 					p.removePotionEffect(PotionEffectType.INVISIBILITY);
 				}
-				plugin.signHandler.updateSigns();
+				
 			} catch (Exception e) { }
 		}
 		this.spectators.clear();
@@ -1108,7 +1142,7 @@ public class Arena {
 	 */
 	public void setInGame(boolean inGame) {
 		this.inGame = inGame;
-		plugin.signHandler.updateSigns();
+		
 	}
 	
 	/**
@@ -1127,6 +1161,7 @@ public class Arena {
 	 */
 	public void setIsCounting(boolean isCountingB) {
 		this.isCounting = isCountingB;
+		plugin.signHandler.updateSigns();
 	}
 	
 	/**
@@ -1218,6 +1253,7 @@ public class Arena {
 			this.name = name;
 			this.teamMenu = Bukkit.createInventory(null, 9, "Pick Team: " + this.getName());
 			plugin.menuPT.updateMenu(this);
+			plugin.signHandler.updateSigns();
 			return true;
 		} else {
 			return false;
@@ -1281,6 +1317,7 @@ public class Arena {
 	 */
 	public void setMaxPlayers(int maxPlayers) {
 		this.maxPlayers = maxPlayers;
+		plugin.signHandler.updateSigns();
 	}
 	
 	/**
@@ -1292,6 +1329,15 @@ public class Arena {
 		ArenaStartEvent e = new ArenaStartEvent(this);
 		Bukkit.getPluginManager().callEvent(e);
 		if (!e.isCancelled()) {
+			for (Player pl : this.getPlayers()) {
+				plugin.im.setClassInventory(pl);
+				pl.sendMessage(Broadcast.TAG + Broadcast.get("arena.started"));
+				pl.playSound(pl.getLocation(), Sound.LEVEL_UP, 20F, 20F);
+				pl.sendMessage(Broadcast.TAG + Broadcast.get("arena.using-class")
+						.replace("%class%", SMeth.setColours(plugin.getConfig().getString(
+						"kit." + plugin.im.playerClass.get(pl) + ".name"))));
+			}
+			
 			this.setInGame(true);
 			
 			Random ran = new Random();
@@ -1308,9 +1354,12 @@ public class Arena {
 					p.teleport(this.getTeamSpawns().get(team).get(ran.nextInt(this.getTeamSpawns().get(team).size())));
 				} else {
 					p.teleport((this.getPlayerSpawns().get(ran.nextInt(this.getPlayerSpawns().size()))));
-				}
+				}				
 			}
+			
+			plugin.signHandler.updateSigns();
 		}
+		
 	}
 	
 	/**

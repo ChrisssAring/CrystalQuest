@@ -27,7 +27,7 @@ public class SaveData {
 	public static void saveSigns() {
 		FileConfiguration data = plugin.getData();
 		
-		data.set("signs", toStringListSign(plugin.signHandler.getSigns()));
+		data.set("signs", toStringList(plugin.signHandler.getSigns()));
 		
 		plugin.saveData();
 	}

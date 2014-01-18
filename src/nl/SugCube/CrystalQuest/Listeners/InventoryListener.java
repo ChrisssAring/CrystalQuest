@@ -8,6 +8,7 @@ import nl.SugCube.CrystalQuest.Teams;
 import nl.SugCube.CrystalQuest.Game.Arena;
 import nl.SugCube.CrystalQuest.Game.Classes;
 
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -77,6 +78,7 @@ public class InventoryListener implements Listener {
 						}
 						
 						a.addPlayer(player, teamId, false);
+						plugin.menuPT.updateMenus();
 					} catch (Exception exeption) { exeption.printStackTrace(); }
 				}
 			}
@@ -111,6 +113,28 @@ public class InventoryListener implements Listener {
 					return;
 				}
 			}
+		}
+		else if (e.getInventory().getName().equalsIgnoreCase("Spectate an arena")) {
+			if (e.getCurrentItem() != null) {
+				e.setCancelled(true);
+				
+				Player player = (Player) e.getWhoClicked();
+				player.closeInventory();
+				
+				if (e.getCurrentItem().hasItemMeta()) {
+					if (e.getCurrentItem().getItemMeta().hasDisplayName()) {
+						Arena a;
+						try {
+							a = plugin.am.getArena(e.getCurrentItem().getItemMeta().getDisplayName()
+									.replace(ChatColor.AQUA + "Spectate ", ""));
+							a.addPlayer((Player) e.getWhoClicked(), 0, true);
+						} catch (Exception ex) { }
+					}
+				}
+			}
+		}
+		else if (e.getInventory().getName().contains(ChatColor.LIGHT_PURPLE + "CrystalQuest Shop:")) {
+			e.setCancelled(true);
 		}
 	}
 }

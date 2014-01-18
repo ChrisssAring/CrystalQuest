@@ -8,6 +8,8 @@ import nl.SugCube.CrystalQuest.Economy.Multipliers;
 import nl.SugCube.CrystalQuest.Game.Arena;
 import nl.SugCube.CrystalQuest.Game.ArenaManager;
 
+import org.bukkit.FireworkEffect;
+import org.bukkit.FireworkEffect.Type;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -37,7 +39,14 @@ public class DeathMessages implements Listener {
 			Random ran = new Random();
 			int crystals = ran.nextInt(5) + 2;
 			for (int i = 0; i < crystals; i++) {
-				if (ran.nextInt(3) > 0) {
+				int chance = 0;
+				if (plugin.ab.getAbilities().containsKey(p)) {
+					if (plugin.ab.getAbilities().get(p).contains("less_death_crystals")) {
+						chance = 1;
+					}
+				}
+				
+				if (ran.nextInt(3) > chance) {
 					p.getWorld().dropItem(p.getLocation(), plugin.itemHandler.getItemByName(Broadcast.get("items.crystal-shard")));
 				}
 				plugin.getArenaManager().getArena(p).addScore(plugin.getArenaManager().getTeam(p), -1);
@@ -69,11 +78,20 @@ public class DeathMessages implements Listener {
 							a.sendDeathMessage(p, " got electrocuted");
 						} else if (cause == DamageCause.MAGIC) {
 							a.sendDeathMessage(p, " disappeared");
+						} else if (cause == DamageCause.FALLING_BLOCK) {
+							a.sendDeathMessage(p, " has been squashed by an anvil");
 						} else if (cause == DamageCause.PROJECTILE) {
 							if (damageEvent.getEntity() instanceof Player) {
 								Player shooter = (Player) p.getKiller();
 								if (shooter != null) {
 									a.sendDeathMessage(p, shooter, "shot");
+									
+									if (shooter.hasPermission("crystalquest.fireworkkill") || shooter.hasPermission("crystalquest.staff")
+											|| shooter.hasPermission("crystalquest.admin")) {
+										plugin.particleHandler.playFirework(p.getWorld(), p.getLocation(), FireworkEffect.builder()
+												.withColor(plugin.im.getTeamColour(plugin.getArenaManager().getTeam(shooter)))
+												.with(Type.BURST).build());
+									}
 									
 									double chance = Multipliers.getMultiplier("blood",
 											plugin.economy.getLevel(p, "blood", "crystals"), false);
@@ -85,8 +103,16 @@ public class DeathMessages implements Listener {
 									
 									//Adds crystals to their balance
 									int money = (int) (1 * plugin.getConfig().getDouble("shop.crystal-multiplier"));
-									plugin.economy.getBalance().addCrystals(shooter, money * multiplier, false);
-									String message = plugin.economy.getCoinMessage(shooter, money * multiplier);
+									int vip = 1;
+									if (shooter.hasPermission("crystalquest.triplecash") ||
+											shooter.hasPermission("crystalquest.admin") ||
+											shooter.hasPermission("crystalquest.staff")) {
+										vip = 3;
+									} else if (shooter.hasPermission("crystalquest.doublecash")) {
+										vip = 2;
+									}
+									plugin.economy.getBalance().addCrystals(shooter, money * multiplier * vip, false);
+									String message = plugin.economy.getCoinMessage(shooter, money * multiplier * vip);
 									if (message != null) {
 										shooter.sendMessage(message);
 									}
@@ -109,17 +135,33 @@ public class DeathMessages implements Listener {
 								a.sendDeathMessage(p, (Player) len);
 								
 								double chance = Multipliers.getMultiplier("blood",
-										plugin.economy.getLevel(p, "blood", "crystals"), false);
+										plugin.economy.getLevel((Player) len, "blood", "crystals"), false);
 								int multiplier = 1;
 								
 								if (ran.nextInt(100) <= chance * 100 && chance != 0) {
 									multiplier = 2;
 								}
 								
+								Player shooter = (Player) len;
+								if (shooter.hasPermission("crystalquest.fireworkkill") || shooter.hasPermission("crystalquest.staff")
+										|| shooter.hasPermission("crystalquest.admin")) {
+									plugin.particleHandler.playFirework(p.getWorld(), p.getLocation(), FireworkEffect.builder()
+											.withColor(plugin.im.getTeamColour(plugin.getArenaManager().getTeam(shooter)))
+											.with(Type.BURST).build());
+								}
+								
 								//Adds crystals to their balance
 								int money = (int) (1 * plugin.getConfig().getDouble("shop.crystal-multiplier"));
-								plugin.economy.getBalance().addCrystals((Player) len, money * multiplier, false);
-								String message = plugin.economy.getCoinMessage((Player) len, money * multiplier);
+								int vip = 1;
+								if (((Player) len).hasPermission("crystalquest.triplecash") ||
+										((Player) len).hasPermission("crystalquest.admin") ||
+										((Player) len).hasPermission("crystalquest.staff")) {
+									vip = 3;
+								} else if (((Player) len).hasPermission("crystalquest.doublecash")) {
+									vip = 2;
+								}
+								plugin.economy.getBalance().addCrystals((Player) len, money * multiplier * vip, false);
+								String message = plugin.economy.getCoinMessage((Player) len, money * multiplier * vip);
 								if (message != null) {
 									((Player) len).sendMessage(message);
 								}

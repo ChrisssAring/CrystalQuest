@@ -17,6 +17,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 @SuppressWarnings("deprecation")
 public class InventoryManager {
@@ -171,6 +172,11 @@ public class InventoryManager {
 		
 		player.updateInventory();
 		
+		if (plugin.getConfig().getString("kit." + this.playerClass.get(player) + ".ability") != null) {
+			List<String> abi = plugin.getConfig().getStringList("kit." + this.playerClass.get(player) + ".ability");
+			plugin.ab.getAbilities().put(player, abi);
+		}
+		
 	}
 	
 	/**
@@ -223,6 +229,12 @@ public class InventoryManager {
 			gamemodeStorage.remove(player);
 			potionStorage.remove(player);
 			playerClass.remove(player);
+			
+			if (player.getGameMode() != GameMode.CREATIVE) {
+				player.setAllowFlight(false);
+				player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 100, 127));
+			}
+			
 			return true;
 		} catch (Exception e) {
 			return false;

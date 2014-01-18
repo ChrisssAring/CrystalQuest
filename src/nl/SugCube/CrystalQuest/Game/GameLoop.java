@@ -7,11 +7,11 @@ import nl.SugCube.CrystalQuest.CrystalQuest;
 import nl.SugCube.CrystalQuest.Teams;
 import nl.SugCube.CrystalQuest.Economy.Multipliers;
 import nl.SugCube.CrystalQuest.Events.ArenaTickEvent;
-import nl.SugCube.CrystalQuest.SBA.SMeth;
+import nl.SugCube.CrystalQuest.Items.WandType;
 
+import org.bukkit.Bukkit;
 import org.bukkit.FireworkEffect;
 import org.bukkit.FireworkEffect.Type;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Firework;
@@ -64,7 +64,7 @@ public class GameLoop implements Runnable {
 									.replace("%time%", "30 " + Broadcast.get("arena.seconds")));
 						}
 					} else if (a.getCountdown() == 10) {
-						for (Player pl : a.getPlayers()) {
+						for (Player pl : a.getPlayers()) {	
 							pl.sendMessage(Broadcast.TAG + Broadcast.get("arena.start")
 									.replace("%time%", "10 " + Broadcast.get("arena.seconds")));
 						}
@@ -75,14 +75,6 @@ public class GameLoop implements Runnable {
 							pl.playSound(pl.getLocation(), Sound.CLICK, 20F, 20F);
 						}
 					} else if (a.getCountdown() <= 0) {
-						for (Player pl : a.getPlayers()) {
-							plugin.im.setClassInventory(pl);
-							pl.sendMessage(Broadcast.TAG + Broadcast.get("arena.started"));
-							pl.playSound(pl.getLocation(), Sound.LEVEL_UP, 20F, 20F);
-							pl.sendMessage(Broadcast.TAG + Broadcast.get("arena.using-class")
-									.replace("%class%", SMeth.setColours(plugin.getConfig().getString(
-									"kit." + plugin.im.playerClass.get(pl) + ".name"))));
-						}
 						a.setIsCounting(false);
 						a.setCountdown(plugin.getConfig().getInt("arena.countdown") + 1);
 						a.startGame();
@@ -101,6 +93,11 @@ public class GameLoop implements Runnable {
 						Bukkit.getPluginManager().callEvent(event);
 						
 						for (Player p : a.getPlayers()) {
+							if (a.getTimeLeft() % 10 == 0) {
+								p.setFoodLevel(20);
+								p.setSaturation(20);
+							}
+							
 							for (ItemStack is : p.getInventory().getContents()) {
 								if (is != null) {
 									if (is.getType() == Material.GLASS_BOTTLE) {
@@ -130,6 +127,34 @@ public class GameLoop implements Runnable {
 								a.addScore(plugin.getArenaManager().getTeam(p), p.getLevel() + extraPoints);
 								p.setLevel(0);
 							}
+							
+							for (ItemStack is : p.getInventory().getContents()) {
+								if (plugin.wand.getWandType(is) != null) {
+									if (is.getDurability() != 0) {
+										double multiplier = 1;
+										if (plugin.ab.getAbilities().containsKey(p)) {
+											if (plugin.ab.getAbilities().get(p).contains("magical_aura")) {
+												multiplier = 0.5;
+											} else if (plugin.ab.getAbilities().get(p).contains("power_loss")) {
+												multiplier = 2;
+											}
+										} else {
+											multiplier = 1;
+										}
+										
+										WandType type = plugin.wand.getWandType(is);
+										short addedDura = (short) (type.getDurability() / plugin
+												.getConfig().getInt(type.getRegenConfig()) * multiplier);
+										short newDura;
+										if (is.getDurability() - addedDura < 0) {
+											newDura = 0;
+										} else {
+											newDura = (short) (is.getDurability() - addedDura);
+										}
+										is.setDurability(newDura);
+									}
+								}
+							}
 						}
 						
 						a.setTimeLeft(a.getTimeLeft() - 1);
@@ -150,7 +175,8 @@ public class GameLoop implements Runnable {
 				if (a.isEndGame()) {
 					if (a.getAfterCount() <= 0) {
 						a.setEndGame(false);
-						a.resetArena();
+						a.resetArena(false);
+						plugin.signHandler.updateSigns();
 					} else { 
 						a.setAfterCount(a.getAfterCount() - 1);
 						
@@ -177,6 +203,8 @@ public class GameLoop implements Runnable {
 				}
 			}
 		}
+		
+		
 		
 	}
 	

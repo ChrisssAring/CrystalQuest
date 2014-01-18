@@ -1,4 +1,4 @@
-updates:
+supdates:
   check-for-updates: true
   show-admin: true
 arena:
@@ -9,6 +9,13 @@ arena:
   item-spawn-chance: 120
   team-colour-prefix: true
   force-even-teams: true
+  blood: true
+wand:
+  regen-fire: 6 
+  regen-teleport: 12
+  regen-healing: 12
+  regen-ice: 12
+  regen-wither: 6
 shop:
   start-price: 518
   multiplier: 2.18
@@ -18,21 +25,23 @@ kit:
   default:
     name: '&dCrystal Hunter'
     icon: eyeofender
-    lore: '&7The default class%nl%&f&7Used to smash some butts'
-    price: -1
+    lore: '&7The default class%nl%&f&7Used to smash some butt!'
+    arenas:
+    - -1vs1
     items:
     - team_helmet
     - team_chestplate
     - team_leggings
     - team_boots
-    - woodsword,1,0,unbreaking,3
-    - bow,1,0,infinity,1,unbreaking,3
+    - woodsword;Crystal Smasher,1,0,unbreaking,10
+    - bow,1,0,infinity,1,unbreaking,10
     - arrow,1
   archer:
     name: '&aArcher'
     icon: bow
     lore: '&2&oRanged Blood'
-    price: -1
+    arenas:
+    - -1vs1
     items:
     - team_helmet
     - leatherchestplate
@@ -44,44 +53,73 @@ kit:
     name: '&7Knight'
     icon: stonesword
     lore: '&b&oMedieval Madness'
-    price: -1
+    arenas:
+    - -1vs1
     items:
      - chainmailhelmet
      - chainmailchestplate
      - team_leggings
      - chainmailboots
-     - stonesword,1,0,unbreaking,3,sharpness,1
+     - stonesword,1,0,unbreaking,10,sharpness,1
   fishtfight:
     name: '&bFishtFight'
     icon: rawfish
-    lore: '&9&oFlippin Heck Mun!'
-    price: -1
+    lore: '&9&oFlippin Heck Mun!%nl%%nl%&9Ability: &bWater Healing'
+    ability:
+     - water_healing
     items:
      - team_helmet
-     - rawfish
+     - rawfish;&bWay too smelling fish
   tnt:
     name: '&a[VIP] &4TNT'
-    icon: TNT
-    lore: '&cBLOW IT ALL UP!!!'
-    price: 500
+    icon: tnt
+    lore: '&cBLOW IT ALL UP!!!%nl%%nl%&9Ability: &bExplosive Arrows'
+    ability:
+    - explosive_arrows
+    arenas:
+    - -1vs1
     items:
-     - woodsword,1,0,unbreaking,3,knockback,1
+     - woodsword,1,0,unbreaking,10,knockback,1
+     - bow,1
      - potion,64,16428
      - tnt,8
-     - goldenhelmet,1,0,blastprotection,2,unbreaking,3
-     - team_boots,1,0,blastprotection,2,unbreaking,3
-     - team_chestplate,1,0,blastprotection,2,unbreaking,3
-     - team_leggings,1,0,blastprotection,2,unbreaking,3
+     - arrow;Flying Bombs,16
+     - goldenhelmet,1,0,blastprotection,2,unbreaking,10
+     - team_boots,1,0,blastprotection,2,unbreaking,10
+     - team_chestplate,1,0,blastprotection,2,unbreaking,10
+     - team_leggings,1,0,blastprotection,2,unbreaking,10
+  ranger:
+    name: '&a[VIP] &2Ranger'
+    icon: leatherchestplate,1,0,protection,5
+    lore: '&aChild of Mother Nature%nl%%nl%&9Ability: &bDouble-Jump Boost%nl%&9Ability: &bAgility'
+    ability:
+    - doublejump_boost
+    - speed
+    arenas:
+    - -1vs1
+    items:
+     - team_helmet,1,0,protection,5,unbreaking,10
+     - leatherchestplate,1
+     - leatherboots,1
+     - leatherleggings,1
+     - woodsword,1,0
+     - bow,1,0,unbreaking,10,power,2,punch,2,infinity,1
+     - arrow,1
+     - bone;&fWolfie &c<3,3
   iron-golem:
     name: '&a[VIP] &6Iron Golem'
     icon: pumpkin,1,0,sharpness,1
-    lore: '&aOnly the strongest will survive'
-    price: 1000
+    lore: '&aOnly the strongest will survive%nl%%nl%&9Ability: &bHealth Boost%nl%&9Weakness: &bWater'
+    ability:
+    - health_boost
+    - corroding
+    arenas:
+    - -1vs1
     items:
     - team_helmet
     - ironchestplate,1,0,protection,1
     - ironleggings,1,0,protection,1
     - team_boots
-    - ironsword,1,0,unbreaking,3
-    - bow,1,0,infinity,1,unbreaking,3
+    - ironsword,1,0,unbreaking,10
+    - bow,1,0,infinity,1,unbreaking,10
     - arrow,1

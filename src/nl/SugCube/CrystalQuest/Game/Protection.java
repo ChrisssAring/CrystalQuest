@@ -146,13 +146,13 @@ public class Protection implements Listener {
 						if (meta.getDisplayName().contains(Broadcast.TAG + "Wand")) {
 							if (e.getAction() == Action.LEFT_CLICK_BLOCK) {
 								this.pos1 = p.getLocation();
-								p.sendMessage(Broadcast.get("commands.pos-set")
+								p.sendMessage(Broadcast.TAG + Broadcast.get("commands.pos-set")
 										.replace("%pos%", "1")
 										.replace("%coords%", plugin.prot.pos1.getX() + ", " + plugin.prot.pos1.getY() +
 												", " + plugin.prot.pos1.getX()));
 							} else {
 								this.pos2 = p.getLocation();
-								p.sendMessage(Broadcast.get("commands.pos-set")
+								p.sendMessage(Broadcast.TAG + Broadcast.get("commands.pos-set")
 										.replace("%pos%", "2")
 										.replace("%coords%", plugin.prot.pos2.getX() + ", " + plugin.prot.pos2.getY() +
 												", " + plugin.prot.pos2.getX()));

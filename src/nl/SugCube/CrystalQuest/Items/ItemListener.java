@@ -22,6 +22,8 @@ import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Creeper;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Fireball;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -31,6 +33,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
@@ -80,316 +83,348 @@ public class ItemListener implements Listener {
 			if (!plugin.getArenaManager().getArena(p).getSpectators().contains(p)) {
 				if (e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) {
 					if (p.getInventory().getItemInHand() != null) {
-						/*
-						 * USE: RAILGUN
-						 */
-						if (p.getInventory().getItemInHand().getType() == Material.IRON_HOE) {
-							ItemStack is = p.getInventory().getItemInHand();
-							if (is.getAmount() == 1) {
-								p.getInventory().remove(p.getInventory().getItemInHand());
-							} else {
-								is.setAmount(is.getAmount() - 1);
-							}
-							
-							p.playSound(p.getLocation(), Sound.ANVIL_LAND, 20F, 20F);
-							final Snowball ball = p.launchProjectile(Snowball.class);
-							ball.setVelocity(p.getLocation().getDirection().multiply(15));
-							ParticleHandler.balls.add(ball);
-							Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-								public void run() {
-									ParticleHandler.balls.remove(ball);
+						if (!plugin.getArenaManager().getArena(p).isEndGame()) {
+							/*
+							 * USE: RAILGUN
+							 */
+							if (p.getInventory().getItemInHand().getType() == Material.IRON_HOE) {
+								ItemStack is = p.getInventory().getItemInHand();
+								if (is.getAmount() == 1) {
+									p.getInventory().remove(p.getInventory().getItemInHand());
+								} else {
+									is.setAmount(is.getAmount() - 1);
 								}
-							}, 60L);
-						}
-						/*
-						 * USE: BLOOPER
-						 */
-						else if (p.getInventory().getItemInHand().getType() == Material.INK_SACK) {
-							ItemStack is = p.getInventory().getItemInHand();
-							if (is.getAmount() == 1) {
-								p.getInventory().remove(p.getInventory().getItemInHand());
-							} else {
-								is.setAmount(is.getAmount() - 1);
-							}
-							
-							double multiplier = Multipliers.getMultiplier("debuff",
-									plugin.economy.getLevel(p, "debuff", "upgrade"), false);
-							int duration = (int) (118 * multiplier);
-							
-							PotionEffect effect = new PotionEffect(PotionEffectType.BLINDNESS, duration, 14);
-							PotionEffect effect2 = new PotionEffect(PotionEffectType.SPEED, duration, 0);
-							
-							Arena a = plugin.getArenaManager().getArena(p);
-							Random ran = new Random();
-							boolean canSelect = true;
-							int targetTeam = 0;
-							
-							if (a.getPlayers().size() > 1) {
-								do {
-									targetTeam = ran.nextInt(a.getTeamCount());
-									if (targetTeam != a.getTeam(p)) {
-										for (Player player : a.getPlayers()) {
-											if (a.getTeam(player) == targetTeam) {
-												canSelect = false;
-											}
-										}
-									}
-								} while (canSelect);
 								
-								for (OfflinePlayer olTarget : a.getTeams()[targetTeam].getPlayers()) {
-									for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-										if (onlinePlayer == olTarget) {
-											onlinePlayer.addPotionEffect(effect);
-											onlinePlayer.addPotionEffect(effect2);
-											onlinePlayer.playSound(p.getLocation(), Sound.SLIME_WALK, 12F, 12F);
-										}
+								p.playSound(p.getLocation(), Sound.ANVIL_LAND, 20F, 20F);
+								final Snowball ball = p.launchProjectile(Snowball.class);
+								ball.setVelocity(p.getLocation().getDirection().multiply(15));
+								ParticleHandler.balls.add(ball);
+								Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+									public void run() {
+										ParticleHandler.balls.remove(ball);
 									}
+								}, 60L);
+							}
+							/*
+							 * USE: BLOOPER
+							 */
+							else if (p.getInventory().getItemInHand().getType() == Material.INK_SACK) {
+								ItemStack is = p.getInventory().getItemInHand();
+								if (is.getAmount() == 1) {
+									p.getInventory().remove(p.getInventory().getItemInHand());
+								} else {
+									is.setAmount(is.getAmount() - 1);
 								}
-							}
-						}
-						/*
-						 * USE: FIRE FLOWER
-						 */
-						else if (p.getInventory().getItemInHand().getType() == Material.RED_ROSE) {
-							ItemStack is = p.getInventory().getItemInHand();
-							if (is.getAmount() == 1) {
-								p.getInventory().remove(p.getInventory().getItemInHand());
-							} else {
-								is.setAmount(is.getAmount() - 1);
-							}
-							
-							Fireball ball = p.launchProjectile(Fireball.class);
-							ball.setVelocity(p.getLocation().getDirection().multiply(3));
-							ball.setYield(0);
-						}
-						/*
-						 * USE: WITHER
-						 */
-						else if (p.getInventory().getItemInHand().getType() == Material.SKULL_ITEM) {
-							ItemStack is = p.getInventory().getItemInHand();
-							if (is.getAmount() == 1) {
-								p.getInventory().remove(p.getInventory().getItemInHand());
-							} else {
-								is.setAmount(is.getAmount() - 1);
-							}
-							
-							Arena a = plugin.getArenaManager().getArena(p);
-							Random ran = new Random();
-							boolean canSelect = true;
-							int targetTeam = 0;
-							
-							if (a.getPlayers().size() > 1) {
-								do {
-									targetTeam = ran.nextInt(a.getTeamCount());
-									if (targetTeam != a.getTeam(p)) {
-										for (Player player : a.getPlayers()) {
-											if (a.getTeam(player) == targetTeam) {
-												canSelect = false;
-											}
-										}
-									}
-								} while (canSelect);
 								
 								double multiplier = Multipliers.getMultiplier("debuff",
 										plugin.economy.getLevel(p, "debuff", "upgrade"), false);
-								int duration = (int) (120 * multiplier);
-								p.playSound(p.getLocation(), Sound.WITHER_HURT, 10L, 10L);
-								p.setHealth((p.getHealth() - 4 < 0 ? 0 : p.getHealth() - 4));
+								int duration = (int) (118 * multiplier);
 								
-								for (OfflinePlayer olTarget : a.getTeams()[targetTeam].getPlayers()) {
-									for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-										if (onlinePlayer == olTarget) {
-											onlinePlayer.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, duration, 2));
-											onlinePlayer.playEffect(EntityEffect.WOLF_SMOKE);
-											onlinePlayer.playSound(onlinePlayer.getLocation(), Sound.WITHER_HURT, 10L, 10L);
+								PotionEffect effect = new PotionEffect(PotionEffectType.BLINDNESS, duration, 14);
+								PotionEffect effect2 = new PotionEffect(PotionEffectType.SPEED, duration, 0);
+								
+								Arena a = plugin.getArenaManager().getArena(p);
+								Random ran = new Random();
+								boolean canSelect = true;
+								int targetTeam = 0;
+								
+								if (a.getPlayers().size() > 1) {
+									do {
+										targetTeam = ran.nextInt(a.getTeamCount());
+										if (targetTeam != a.getTeam(p)) {
+											for (Player player : a.getPlayers()) {
+												if (a.getTeam(player) == targetTeam) {
+													canSelect = false;
+												}
+											}
 										}
-									}
-								}
-							}
-						}
-						/*
-						 * USE: CREEPER EGG
-						 */
-						else if (p.getInventory().getItemInHand().getType() == Material.MONSTER_EGG) {
-							if (Action.RIGHT_CLICK_BLOCK == e.getAction()) {
-								e.setCancelled(true);
-							}
-							
-							ItemStack is = p.getInventory().getItemInHand();
-							if (is.getAmount() == 1) {
-								p.getInventory().remove(p.getInventory().getItemInHand());
-							} else {
-								is.setAmount(is.getAmount() - 1);
-							}
-							
-							Creeper c = p.getWorld().spawn(p.getTargetBlock(null, 64).getLocation().add(0, 1, 0), Creeper.class);
-							p.playSound(p.getTargetBlock(null, 64).getLocation().add(0, 1, 0), Sound.CREEPER_HISS, 10L, 10L);
-							
-							Random ran = new Random();
-							double chance = Multipliers.getMultiplier("creeper",
-									plugin.economy.getLevel(p, "creepers", "upgrade"), false);
-							
-							if (ran.nextInt(1000) <= chance * 1000) {
-								c.setPowered(true);
-							}
-							
-							Arena a = plugin.getArenaManager().getArena(p);
-							a.getGameCreepers().add(c);
-						}
-						/*
-						 * USE: LANDMINE
-						 */
-						else if (p.getInventory().getItemInHand().getType() == Material.STONE_PLATE) {
-							ItemStack is = p.getInventory().getItemInHand();
-							if (is.getAmount() == 1) {
-								p.getInventory().remove(p.getInventory().getItemInHand());
-							} else {
-								is.setAmount(is.getAmount() - 1);
-							}
-							
-							Arena a = plugin.getArenaManager().getArena(p);
-							
-							if (p.getLocation().getBlock().getType() == Material.AIR) {
-								Block block = p.getLocation().add(0, -1, 0).getBlock();
-								if (block.getType() != Material.AIR) {
-									Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new PlaceLandmine(
-											p.getLocation().getBlock(), a, p), 40L);
-									a.getLandmines().put(p.getLocation().getBlock().getLocation(), p);
-								}
-							} else if (p.getLocation().getBlock().getType() == Material.LONG_GRASS ||
-									p.getLocation().getBlock().getType() == Material.STATIONARY_WATER ||
-									p.getLocation().getBlock().getType() == Material.WATER ||
-									p.getLocation().getBlock().getType() == Material.DEAD_BUSH ||
-									p.getLocation().getBlock().getType() == Material.YELLOW_FLOWER ||
-									p.getLocation().getBlock().getType() == Material.RED_ROSE ||
-									p.getLocation().getBlock().getType() == Material.RAILS ||
-									p.getLocation().getBlock().getType() == Material.DETECTOR_RAIL ||
-									p.getLocation().getBlock().getType() == Material.POWERED_RAIL) {
-								if (p.getLocation().add(0, 1, 0).getBlock().getType() == Material.AIR) {
-									Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new PlaceLandmine(
-											p.getLocation().add(0, 1, 0).getBlock(), a, p), 40L);
-								}
-							}
-						}
-						/*
-						 * USE: Wolf ♥
-						 */
-						else if (p.getInventory().getItemInHand().getType() == Material.BONE) {
-							ItemStack is = p.getInventory().getItemInHand();
-							if (is.getAmount() == 1) {
-								p.getInventory().remove(p.getInventory().getItemInHand());
-							} else {
-								is.setAmount(is.getAmount() - 1);
-							}
-							
-							int strengthLevel = (int) Multipliers.getMultiplier("wolfstrength",
-									plugin.economy.getLevel(p, "wolf", "upgrade"), false) - 1;
-							int resistanceLevel = (int) Multipliers.getMultiplier("wolfresistance",
-									plugin.economy.getLevel(p, "wolf", "upgrade"), false) - 1;
-							
-							ArenaManager am = plugin.getArenaManager();
-							Wolf w = p.getWorld().spawn(p.getLocation(), Wolf.class);
-							w.setOwner(p);
-							w.setAdult();
-							w.setCustomName(Teams.getTeamChatColour(am.getTeam(p)) + getWolfName());
-							w.setCollarColor(Teams.getTeamDyeColour(am.getTeam(p)));
-							w.setMaxHealth(20);
-							w.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 9999, strengthLevel));
-							
-							if (resistanceLevel >= 0) {
-								w.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 9999, resistanceLevel));
-							}
-							
-							w.playEffect(EntityEffect.WOLF_HEARTS);
-							w.getWorld().playSound(w.getLocation(), Sound.WOLF_BARK, 3L, 3L);
-							am.getArena(p).getGameWolfs().add(w);
-						}
-						/*
-						 * USE: GLUE
-						 */
-						else if (p.getInventory().getItemInHand().getType() == Material.SLIME_BALL) {
-							ItemStack is = p.getInventory().getItemInHand();
-							if (is.getAmount() == 1) {
-								p.getInventory().remove(p.getInventory().getItemInHand());
-							} else {
-								is.setAmount(is.getAmount() - 1);
-							}
-							PotionEffect effect = new PotionEffect(PotionEffectType.SLOW, 118, 14);
-							
-							Arena a = plugin.getArenaManager().getArena(p);
-							Random ran = new Random();
-							boolean canSelect = true;
-							int targetTeam = 0;
-							
-							if (a.getPlayers().size() > 1) {
-								do {
-									targetTeam = ran.nextInt(a.getTeamCount());
-									if (targetTeam != a.getTeam(p)) {
-										for (Player player : a.getPlayers()) {
-											if (a.getTeam(player) == targetTeam) {
-												canSelect = false;
+									} while (canSelect);
+									
+									for (OfflinePlayer olTarget : a.getTeams()[targetTeam].getPlayers()) {
+										for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+											if (onlinePlayer == olTarget) {
+												onlinePlayer.addPotionEffect(effect);
+												onlinePlayer.addPotionEffect(effect2);
+												onlinePlayer.playSound(p.getLocation(), Sound.SLIME_WALK, 12F, 12F);
 											}
 										}
 									}
-								} while (canSelect);
+								}
+							}
+							/*
+							 * USE: FIRE FLOWER
+							 */
+							else if (p.getInventory().getItemInHand().getType() == Material.RED_ROSE) {
+								ItemStack is = p.getInventory().getItemInHand();
+								if (is.getAmount() == 1) {
+									p.getInventory().remove(p.getInventory().getItemInHand());
+								} else {
+									is.setAmount(is.getAmount() - 1);
+								}
 								
-								for (OfflinePlayer olTarget : a.getTeams()[targetTeam].getPlayers()) {
-									for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-										if (onlinePlayer == olTarget) {
-											onlinePlayer.addPotionEffect(effect);
-											onlinePlayer.playSound(p.getLocation(), Sound.SLIME_WALK2, 12F, 12F);
+								Fireball ball = p.launchProjectile(Fireball.class);
+								ball.setVelocity(p.getLocation().getDirection().multiply(3));
+								ball.setYield(0);
+							}
+							/*
+							 * USE: WITHER
+							 */
+							else if (p.getInventory().getItemInHand().getType() == Material.SKULL_ITEM) {
+								ItemStack is = p.getInventory().getItemInHand();
+								if (is.getAmount() == 1) {
+									p.getInventory().remove(p.getInventory().getItemInHand());
+								} else {
+									is.setAmount(is.getAmount() - 1);
+								}
+								
+								Arena a = plugin.getArenaManager().getArena(p);
+								Random ran = new Random();
+								boolean canSelect = true;
+								int targetTeam = 0;
+								
+								if (a.getPlayers().size() > 1) {
+									do {
+										targetTeam = ran.nextInt(a.getTeamCount());
+										if (targetTeam != a.getTeam(p)) {
+											for (Player player : a.getPlayers()) {
+												if (a.getTeam(player) == targetTeam) {
+													canSelect = false;
+												}
+											}
+										}
+									} while (canSelect);
+									
+									double multiplier = Multipliers.getMultiplier("debuff",
+											plugin.economy.getLevel(p, "debuff", "upgrade"), false);
+									int duration = (int) (120 * multiplier);
+									p.playSound(p.getLocation(), Sound.WITHER_HURT, 10L, 10L);
+									p.setHealth((p.getHealth() - 4 < 0 ? 0 : p.getHealth() - 4));
+									
+									for (OfflinePlayer olTarget : a.getTeams()[targetTeam].getPlayers()) {
+										for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+											if (onlinePlayer == olTarget) {
+												onlinePlayer.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, duration, 2));
+												onlinePlayer.playEffect(EntityEffect.WOLF_SMOKE);
+												onlinePlayer.playSound(onlinePlayer.getLocation(), Sound.WITHER_HURT, 10L, 10L);
+											}
 										}
 									}
 								}
 							}
-						}
-						/*
-						 * USE: LIGHTNING BOLT
-						 */
-						else if (p.getInventory().getItemInHand().getType() == Material.FEATHER) {
-							ItemStack is = p.getInventory().getItemInHand();
-							if (is.getAmount() == 1) {
-								p.getInventory().remove(p.getInventory().getItemInHand());
-							} else {
-								is.setAmount(is.getAmount() - 1);
+							/*
+							 * USE: CREEPER EGG
+							 */
+							else if (p.getInventory().getItemInHand().getType() == Material.MONSTER_EGG) {
+								if (Action.RIGHT_CLICK_BLOCK == e.getAction()) {
+									e.setCancelled(true);
+								}
+								
+								ItemStack is = p.getInventory().getItemInHand();
+								if (is.getAmount() == 1) {
+									p.getInventory().remove(p.getInventory().getItemInHand());
+								} else {
+									is.setAmount(is.getAmount() - 1);
+								}
+								
+								Creeper c = p.getWorld().spawn(p.getTargetBlock(null, 64).getLocation().add(0, 1, 0), Creeper.class);
+								p.playSound(p.getTargetBlock(null, 64).getLocation().add(0, 1, 0), Sound.CREEPER_HISS, 10L, 10L);
+								
+								Random ran = new Random();
+								double chance = Multipliers.getMultiplier("creeper",
+										plugin.economy.getLevel(p, "creepers", "upgrade"), false);
+								
+								if (ran.nextInt(1000) <= chance * 1000) {
+									c.setPowered(true);
+								}
+								
+								Arena a = plugin.getArenaManager().getArena(p);
+								a.getGameCreepers().add(c);
 							}
-							
-							Arena a = plugin.getArenaManager().getArena(p);
-							Random ran = new Random();
-							boolean canSelect = true;
-							int targetTeam = 0;
-							
-							if (a.getPlayers().size() > 1) {
-								do {
-									targetTeam = ran.nextInt(a.getTeamCount());
-									if (targetTeam != a.getTeam(p)) {
-										for (Player player : a.getPlayers()) {
-											if (a.getTeam(player) == targetTeam) {
-												canSelect = false;
+							/*
+							 * USE: LANDMINE
+							 */
+							else if (p.getInventory().getItemInHand().getType() == Material.STONE_PLATE) {
+								ItemStack is = p.getInventory().getItemInHand();
+								if (is.getAmount() == 1) {
+									p.getInventory().remove(p.getInventory().getItemInHand());
+								} else {
+									is.setAmount(is.getAmount() - 1);
+								}
+								
+								Arena a = plugin.getArenaManager().getArena(p);
+								
+								if (p.getLocation().getBlock().getType() == Material.AIR) {
+									Block block = p.getLocation().add(0, -1, 0).getBlock();
+									if (block.getType() != Material.AIR) {
+										Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new PlaceLandmine(
+												p.getLocation().getBlock(), a, p), 40L);
+										a.getLandmines().put(p.getLocation().getBlock().getLocation(), p);
+									}
+								} else if (p.getLocation().getBlock().getType() == Material.LONG_GRASS ||
+										p.getLocation().getBlock().getType() == Material.STATIONARY_WATER ||
+										p.getLocation().getBlock().getType() == Material.WATER ||
+										p.getLocation().getBlock().getType() == Material.DEAD_BUSH ||
+										p.getLocation().getBlock().getType() == Material.YELLOW_FLOWER ||
+										p.getLocation().getBlock().getType() == Material.RED_ROSE ||
+										p.getLocation().getBlock().getType() == Material.RAILS ||
+										p.getLocation().getBlock().getType() == Material.DETECTOR_RAIL ||
+										p.getLocation().getBlock().getType() == Material.POWERED_RAIL) {
+									if (p.getLocation().add(0, 1, 0).getBlock().getType() == Material.AIR) {
+										Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new PlaceLandmine(
+												p.getLocation().add(0, 1, 0).getBlock(), a, p), 40L);
+									}
+								}
+							}
+							/*
+							 * USE: Wolf ♥
+							 */
+							else if (p.getInventory().getItemInHand().getType() == Material.BONE) {
+								ItemStack is = p.getInventory().getItemInHand();
+								if (is.getAmount() == 1) {
+									p.getInventory().remove(p.getInventory().getItemInHand());
+								} else {
+									is.setAmount(is.getAmount() - 1);
+								}
+								
+								int strengthLevel = (int) Multipliers.getMultiplier("wolfstrength",
+										plugin.economy.getLevel(p, "wolf", "upgrade"), false) - 1;
+								int resistanceLevel = (int) Multipliers.getMultiplier("wolfresistance",
+										plugin.economy.getLevel(p, "wolf", "upgrade"), false) - 1;
+								
+								ArenaManager am = plugin.getArenaManager();
+								Wolf w = p.getWorld().spawn(p.getLocation(), Wolf.class);
+								w.setOwner(p);
+								w.setAdult();
+								w.setCustomName(Teams.getTeamChatColour(am.getTeam(p)) + getWolfName());
+								w.setCollarColor(Teams.getTeamDyeColour(am.getTeam(p)));
+								w.setMaxHealth(20);
+								w.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 9999, strengthLevel));
+								
+								if (resistanceLevel >= 0) {
+									w.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 9999, resistanceLevel));
+								}
+								
+								w.playEffect(EntityEffect.WOLF_HEARTS);
+								w.getWorld().playSound(w.getLocation(), Sound.WOLF_BARK, 3L, 3L);
+								am.getArena(p).getGameWolfs().add(w);
+							}
+							/*
+							 * USE: GLUE
+							 */
+							else if (p.getInventory().getItemInHand().getType() == Material.SLIME_BALL) {
+								ItemStack is = p.getInventory().getItemInHand();
+								if (is.getAmount() == 1) {
+									p.getInventory().remove(p.getInventory().getItemInHand());
+								} else {
+									is.setAmount(is.getAmount() - 1);
+								}
+								PotionEffect effect = new PotionEffect(PotionEffectType.SLOW, 118, 14);
+								
+								Arena a = plugin.getArenaManager().getArena(p);
+								Random ran = new Random();
+								boolean canSelect = true;
+								int targetTeam = 0;
+								
+								if (a.getPlayers().size() > 1) {
+									do {
+										targetTeam = ran.nextInt(a.getTeamCount());
+										if (targetTeam != a.getTeam(p)) {
+											for (Player player : a.getPlayers()) {
+												if (a.getTeam(player) == targetTeam) {
+													canSelect = false;
+												}
+											}
+										}
+									} while (canSelect);
+									
+									for (OfflinePlayer olTarget : a.getTeams()[targetTeam].getPlayers()) {
+										for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+											if (onlinePlayer == olTarget) {
+												onlinePlayer.addPotionEffect(effect);
+												onlinePlayer.playSound(p.getLocation(), Sound.SLIME_WALK2, 12F, 12F);
 											}
 										}
 									}
-								} while (canSelect);
-	
-								double lightning = Multipliers.getMultiplier("lightning",
-										plugin.economy.getLevel(p, "explosive", "upgrade"), false);
+								}
+							}
+							/*
+							 * USE: LIGHTNING BOLT
+							 */
+							else if (p.getInventory().getItemInHand().getType() == Material.FEATHER) {
+								ItemStack is = p.getInventory().getItemInHand();
+								if (is.getAmount() == 1) {
+									p.getInventory().remove(p.getInventory().getItemInHand());
+								} else {
+									is.setAmount(is.getAmount() - 1);
+								}
 								
-								double multiplier = Multipliers.getMultiplier("debuff",
-										plugin.economy.getLevel(p, "debuff", "upgrade"), false);
-								int duration = (int) (218 * multiplier);
+								Arena a = plugin.getArenaManager().getArena(p);
+								Random ran = new Random();
+								boolean canSelect = true;
+								int targetTeam = 0;
 								
-								for (OfflinePlayer olTarget : a.getTeams()[targetTeam].getPlayers()) {
-									for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-										if (onlinePlayer == olTarget) {
-											if (lightning > 0) {
-												World w = onlinePlayer.getLocation().getWorld();
-												w.createExplosion(onlinePlayer.getLocation().getX(), onlinePlayer.getLocation().getY(),
-														onlinePlayer.getLocation().getZ(), (float) lightning, false, false);
+								if (a.getPlayers().size() > 1) {
+									do {
+										targetTeam = ran.nextInt(a.getTeamCount());
+										if (targetTeam != a.getTeam(p)) {
+											for (Player player : a.getPlayers()) {
+												if (a.getTeam(player) == targetTeam) {
+													canSelect = false;
+												}
 											}
-											
-											onlinePlayer.getWorld().strikeLightning(onlinePlayer.getLocation());
-											onlinePlayer.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, duration, 1));
 										}
+									} while (canSelect);
+		
+									double lightning = Multipliers.getMultiplier("lightning",
+											plugin.economy.getLevel(p, "explosive", "upgrade"), false);
+									
+									double multiplier = Multipliers.getMultiplier("debuff",
+											plugin.economy.getLevel(p, "debuff", "upgrade"), false);
+									int duration = (int) (218 * multiplier);
+									
+									for (OfflinePlayer olTarget : a.getTeams()[targetTeam].getPlayers()) {
+										for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+											if (onlinePlayer == olTarget) {
+												if (lightning > 0) {
+													World w = onlinePlayer.getLocation().getWorld();
+													w.createExplosion(onlinePlayer.getLocation().getX(), onlinePlayer.getLocation().getY(),
+															onlinePlayer.getLocation().getZ(), (float) lightning, false, false);
+												}
+												
+												onlinePlayer.getWorld().strikeLightning(onlinePlayer.getLocation());
+												onlinePlayer.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, duration, 1));
+											}
+										}
+									}
+								}
+							}
+							/*
+							 * USE: ANVIL
+							 */
+							else if (p.getInventory().getItemInHand().getType() == Material.ANVIL) {
+								ItemStack is = p.getInventory().getItemInHand();
+								if (is.getAmount() == 1) {
+									p.getInventory().remove(p.getInventory().getItemInHand());
+								} else {
+									is.setAmount(is.getAmount() - 1);
+								}
+								
+								Random ran = new Random();
+								for (int j = 0; j < 7; j++) {
+									Location loc = p.getLocation();
+									
+									loc.setX(7 - (ran.nextInt(14)) + loc.getX());
+									loc.setZ(7 - (ran.nextInt(14)) + loc.getZ());
+									
+									for (int i = 0; i < 32; i++) {
+										loc.add(0, 1, 0);
+										if (loc.getBlock().getType() != Material.AIR) {
+											loc.add(0, -1, 0);
+											break;
+										}
+									}
+									if (loc.getBlock().getType() == Material.AIR) {
+										loc.getBlock().setType(Material.ANVIL);
 									}
 								}
 							}
@@ -400,11 +435,8 @@ public class ItemListener implements Listener {
 				 * CHECKS FOR LANDMINES
 				 */
 				else if (e.getAction() == Action.PHYSICAL) {
-					Bukkit.broadcastMessage("Fires3");
 					if (e.getClickedBlock().getType() == Material.STONE_PLATE) {
-						Bukkit.broadcastMessage("Fires2");
 						if (!plugin.getArenaManager().getArena(p).getSpectators().contains(p)) {
-							Bukkit.broadcastMessage("Fires");
 							Block b = e.getClickedBlock();
 							Location loc = p.getLocation(); 
 							b.getWorld().createExplosion(loc.getX(), loc.getY(), loc.getZ(), 2.0F, false, false);
@@ -434,8 +466,16 @@ public class ItemListener implements Listener {
 										
 										//Adds crystals to their balance
 										int money = (int) (1 * plugin.getConfig().getDouble("shop.crystal-multiplier"));
-										plugin.economy.getBalance().addCrystals(killer, money * multiplier, false);
-										String message = plugin.economy.getCoinMessage(killer, money * multiplier);
+										int vip = 1;
+										if (killer.hasPermission("crystalquest.triplecash") ||
+												killer.hasPermission("crystalquest.admin") ||
+												killer.hasPermission("crystalquest.staff")) {
+											vip = 3;
+										} else if (killer.hasPermission("crystalquest.doublecash")) {
+											vip = 2;
+										}
+										plugin.economy.getBalance().addCrystals(killer, money * multiplier * vip, false);
+										String message = plugin.economy.getCoinMessage(killer, money * multiplier * vip);
 										if (message != null) {
 											killer.sendMessage(message);
 										}
@@ -448,6 +488,27 @@ public class ItemListener implements Listener {
 			}
 		}
 	}
+
+	@EventHandler
+    public void onAnvilFall(EntityChangeBlockEvent event) {
+        if (event.getEntityType().equals(EntityType.FALLING_BLOCK)) {
+            FallingBlock fb = (FallingBlock) event.getEntity();
+            if (!event.getBlock().getLocation().add(0, -0.01, 0).getBlock().getType().equals(Material.AIR)) {
+            	if (fb.getMaterial().equals(Material.ANVIL)) {
+                	if (plugin.prot.isInProtectedArena(fb.getLocation())) {
+                		fb.getLocation().getWorld().playSound(fb.getLocation(), Sound.ANVIL_LAND, 2F, 2F);
+	                    fb.remove();
+	                    event.setCancelled(true);
+                	}
+                } else if (fb.getMaterial().equals(Material.LAVA)) {
+                	if (plugin.prot.isInProtectedArena(fb.getLocation())) {
+                		fb.remove();
+                		event.setCancelled(true);
+                	}
+                }
+            }
+        }
+    }
 	
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onPlayerPickupItem(PlayerPickupItemEvent e) {
@@ -463,10 +524,11 @@ public class ItemListener implements Listener {
 						Random ran = new Random();
 						
 						/*
-						 * GRENADES-RAILGUN-HAMMER-LANDMINE
+						 * GRENADES-RAILGUN-HAMMER-LANDMINE-ANVIL-TNT
 						 */
 						if (name.contains(Broadcast.get("items.grenade")) || name.contains(Broadcast.get("items.railgun")) ||
-								name.contains(Broadcast.get("items.landmine")) || name.contains(Broadcast.get("items.hammer"))) {
+								name.contains(Broadcast.get("items.landmine")) || name.contains(Broadcast.get("items.hammer")) ||
+								name.contains(Broadcast.get("items.tnt")) || name.contains(Broadcast.get("items.anvil"))) {
 							double chance = Multipliers.getMultiplier("ammo",
 									plugin.economy.getLevel(player, "weaponry", "upgrade"), false);
 							if (chance > 0) {
@@ -477,9 +539,33 @@ public class ItemListener implements Listener {
 									if (is.getType() == Material.DIAMOND_AXE) {
 										ItemStack newIs = new ItemStack(is.getType(), 1, (short) (1561 - (ran.nextInt(3) + 1)));
 										newIs.addUnsafeEnchantments(is.getEnchantments());
+										ItemMeta itemM = newIs.getItemMeta();
+										itemM.setDisplayName(Broadcast.get("items.hammer"));
+										newIs.setItemMeta(itemM);
 										player.getInventory().addItem(newIs);
 									} else {
 										ItemStack newIs = new ItemStack(is.getType(), is.getAmount() * 2);
+										if (newIs.getType() == Material.EGG) {
+											ItemMeta im1 = newIs.getItemMeta();
+											im1.setDisplayName(Broadcast.get("items.grenade"));
+											newIs.setItemMeta(im1);
+										} else if (newIs.getType() == Material.IRON_HOE) {
+											ItemMeta im1 = newIs.getItemMeta();
+											im1.setDisplayName(Broadcast.get("items.railgun"));
+											newIs.setItemMeta(im1);
+										} else if (newIs.getType() == Material.STONE_PLATE) {
+											ItemMeta im1 = newIs.getItemMeta();
+											im1.setDisplayName(Broadcast.get("items.landmine"));
+											newIs.setItemMeta(im1);
+										} else if (newIs.getType() == Material.TNT) {
+											ItemMeta im1 = newIs.getItemMeta();
+											im1.setDisplayName(Broadcast.get("items.tnt"));
+											newIs.setItemMeta(im1);
+										} else if (newIs.getType() == Material.ANVIL) {
+											ItemMeta im1 = newIs.getItemMeta();
+											im1.setDisplayName(Broadcast.get("items.anvil"));
+											newIs.setItemMeta(im1);
+										}
 										player.getInventory().addItem(newIs);
 									}
 								}
@@ -572,6 +658,10 @@ public class ItemListener implements Listener {
 		}
 	}
 	
+	/**
+	 * Just get a random name from a huge list of names :)
+	 * @return (String) The list 
+	 */
 	public String getWolfName() {
 		List<String> names = new ArrayList<String>();
 		names.add("Bertha");
@@ -623,6 +713,15 @@ public class ItemListener implements Listener {
 		names.add("Anique");
 		names.add("Sjoerd");
 		names.add("Ølaf");
+		names.add("Udyr");
+		names.add("JayCobe");
+		names.add("Sken");
+		names.add("Chris");
+		names.add("OwlCrafted");
+		names.add("SugCubie");
+		names.add("Googol");
+		names.add("Dinnerbone");
+		names.add("Grumm");
 		
 		return names.get((new Random()).nextInt(names.size()));
 	}

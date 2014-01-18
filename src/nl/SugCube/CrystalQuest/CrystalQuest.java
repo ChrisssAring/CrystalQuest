@@ -6,6 +6,7 @@ import java.util.logging.Level;
 
 import nl.SugCube.CrystalQuest.API.CrystalQuestAPI;
 import nl.SugCube.CrystalQuest.Economy.Economy;
+import nl.SugCube.CrystalQuest.Game.Ability;
 import nl.SugCube.CrystalQuest.Game.Arena;
 import nl.SugCube.CrystalQuest.Game.ArenaManager;
 import nl.SugCube.CrystalQuest.Game.Classes;
@@ -15,8 +16,11 @@ import nl.SugCube.CrystalQuest.IO.LoadData;
 import nl.SugCube.CrystalQuest.IO.SaveData;
 import nl.SugCube.CrystalQuest.InventoryMenu.PickTeam;
 import nl.SugCube.CrystalQuest.InventoryMenu.SelectClass;
+import nl.SugCube.CrystalQuest.InventoryMenu.SpectateArena;
 import nl.SugCube.CrystalQuest.Items.ItemHandler;
 import nl.SugCube.CrystalQuest.Items.ItemListener;
+import nl.SugCube.CrystalQuest.Items.Wand;
+import nl.SugCube.CrystalQuest.Listeners.ArenaListener;
 import nl.SugCube.CrystalQuest.Listeners.DeathMessages;
 import nl.SugCube.CrystalQuest.Listeners.EntityListener;
 import nl.SugCube.CrystalQuest.Listeners.InventoryListener;
@@ -39,6 +43,7 @@ public class CrystalQuest extends JavaPlugin {
 	public InventoryManager im;
 	public StringHandler sh;
 	public SelectClass menuSC;
+	public SpectateArena menuSA;
 	public CrystalQuestCommandExecutor commandExecutor;
 	public Broadcast broadcast;
 	public SaveData saveData;
@@ -48,6 +53,7 @@ public class CrystalQuest extends JavaPlugin {
 	public ParticleHandler particleHandler;
 	public Classes classes;
 	public Economy economy;
+	public Ability ab;
 	
 	public PluginManager pm;
 	public Protection prot;
@@ -58,6 +64,8 @@ public class CrystalQuest extends JavaPlugin {
 	public SignListener signL;
 	public ItemListener ppiL;
 	public ProjectileListener projL;
+	public ArenaListener arenaL;
+	public Wand wand;
 	
 	public void onEnable() {
 		/*
@@ -101,6 +109,7 @@ public class CrystalQuest extends JavaPlugin {
 		im = new InventoryManager(this);
 		sh = new StringHandler(this);
 		menuSC = new SelectClass(this);
+		menuSA = new SpectateArena(this);
 		commandExecutor = new CrystalQuestCommandExecutor(this);
 		broadcast = new Broadcast(this);
 		saveData = new SaveData(this);
@@ -117,9 +126,12 @@ public class CrystalQuest extends JavaPlugin {
 		signL = new SignListener(this);
 		ppiL = new ItemListener(this);
 		projL = new ProjectileListener(this);
+		arenaL = new ArenaListener(this);
+		wand = new Wand(this);
 		PluginDescriptionFile pdfFile = this.getDescription();
 		this.pm = getServer().getPluginManager();
 		this.economy = new Economy(this, pm);
+		this.ab = new Ability(this);
 		
 		/*
 		 * Registering Events:
@@ -132,6 +144,9 @@ public class CrystalQuest extends JavaPlugin {
 		pm.registerEvents(projL, this);
 		pm.registerEvents(deathListener, this);
 		pm.registerEvents(prot, this);
+		pm.registerEvents(ab, this);
+		pm.registerEvents(wand, this);
+		pm.registerEvents(arenaL, this);
 		this.economy.registerEvents(pm);
 		
 		/*
@@ -175,6 +190,13 @@ public class CrystalQuest extends JavaPlugin {
 			}
 		}
 		
+		/*
+		 * Resets all arenas and makes sure everything is ready to go.
+		 */
+		for (Arena a : am.getArenas()) {
+			a.resetArena(true);
+		}
+		
 		LoadData.loadSigns();		//Load the lobby-signs
 		
 		Broadcast.setMessages();	
@@ -187,13 +209,6 @@ public class CrystalQuest extends JavaPlugin {
 		PluginDescriptionFile pdfFile = this.getDescription();
 		
 		/*
-		 * Saves data
-		 */
-		SaveData.saveArenas();		//ARENAS
-		SaveData.saveSigns();		//SIGNS
-		SaveData.saveLobbySpawn();	//LOBBYSPAWN
-		
-		/*
 		 * Kicks players from game on reload.
 		 */
 		for (Arena a : am.arena) {			
@@ -204,8 +219,15 @@ public class CrystalQuest extends JavaPlugin {
 		 * Reset all arenas
 		 */
 		for (Arena a : am.getArenas()) {
-			a.resetArena();
+			a.resetArena(false);
 		}
+		
+		/*
+		 * Saves data
+		 */
+		SaveData.saveArenas();		//ARENAS
+		SaveData.saveSigns();		//SIGNS
+		SaveData.saveLobbySpawn();	//LOBBYSPAWN
 		
 		this.getLogger().info("[CrystalQuest] CrystalQuest v" + pdfFile.getVersion() + " has been disabled!");
 		

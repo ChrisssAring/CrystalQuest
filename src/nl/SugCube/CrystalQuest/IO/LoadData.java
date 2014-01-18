@@ -7,7 +7,6 @@ import nl.SugCube.CrystalQuest.SBA.SMeth;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.Sign;
 import org.bukkit.configuration.file.FileConfiguration;
 
 public class LoadData {
@@ -28,8 +27,7 @@ public class LoadData {
 		for (String s : plugin.getData().getStringList("signs")) {
 			Location loc = SMeth.toLocation(s);
 			if (loc.getBlock().getType() == Material.WALL_SIGN || loc.getBlock().getType() == Material.SIGN_POST) {
-				Sign sign = (Sign) loc.getBlock().getState();
-				plugin.signHandler.getSigns().add(sign);
+				plugin.signHandler.getSigns().add(loc);
 			}
 		}
 		plugin.signHandler.updateSigns();
@@ -41,7 +39,7 @@ public class LoadData {
 	 * @return void
 	 */
 	public static void loadLobbySpawn() {
-		if (!plugin.getData().getString("lobby-spawn").isEmpty()) {
+		if (plugin.getData().getString("lobby-spawn") != null) {
 			plugin.am.setLobby(SMeth.toLocation(plugin.getData().getString("lobby-spawn")));
 		}
 	}

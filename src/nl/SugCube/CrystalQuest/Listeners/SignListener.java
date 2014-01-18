@@ -56,6 +56,9 @@ public class SignListener implements Listener {
 				} else if (e.getLine(1).isEmpty() && e.getLine(3).isEmpty() && e.getLine(2).equalsIgnoreCase("lobby")) {
 					e.setLine(2, ChatColor.DARK_RED + "Lobby");
 					player.sendMessage(Broadcast.TAG + Broadcast.get("sign.succesful").replace("%sign%", "Lobby-sign"));
+				} else if (e.getLine(1).isEmpty() && e.getLine(3).isEmpty() && e.getLine(2).equalsIgnoreCase("spectate")) {
+					e.setLine(2, ChatColor.AQUA + "Spectate");
+					player.sendMessage(Broadcast.TAG + Broadcast.get("sign.succesful").replace("%sign%", "Spectate-sign"));
 				} else {
 					try {
 						Arena a = plugin.am.getArena(e.getLine(1));
@@ -90,8 +93,8 @@ public class SignListener implements Listener {
 						s.setLine(3, e.getLine(3));
 						s.update();
 						
-						plugin.signHandler.getSigns().add(s);
-						plugin.signHandler.updateSigns();
+						plugin.signHandler.getSigns().add(s.getLocation());
+						
 						player.sendMessage(Broadcast.TAG + Broadcast.get("sign.succesful").replace("%sign%", "Arena-sign"));
 					} catch (Exception ex) {
 						e.setLine(0, Broadcast.get("sign.invalid"));
@@ -120,22 +123,36 @@ public class SignListener implements Listener {
 				//Checks if the sign contains [CrystalQuest]
 				Sign s = (Sign) e.getClickedBlock().getState();
 				if (s.getLine(0).equalsIgnoreCase("[CrystalQuest]")) {
+					
 					e.setCancelled(true);
-					plugin.signHandler.updateSigns();
 					/*
-					 * Checks if the sign is a Class-pick sign and opens the class-choice menu.
+					 * Checks if the sign is a Class-pick sign and opens the class-choice menu if so.
 					 */
 					if (s.getLine(2).equalsIgnoreCase(ChatColor.DARK_PURPLE + "Pick a Class")) {
 						plugin.menuSC.openMenu(e.getPlayer());
+						
 					}
 					/*
-					 * Checks if the sign is a Shop-sign and opens the shop menu;
+					 * Checks if the sign is a Spectate-sign and opens the spectate menu if so.
+					 */
+					else if (s.getLine(2).equalsIgnoreCase(ChatColor.AQUA + "Spectate")) {
+						if (e.getPlayer().hasPermission("crystalquest.admin") ||
+							e.getPlayer().hasPermission("crystalquest.staff") ||
+							e.getPlayer().hasPermission("crystalquest.spectate")) {
+							plugin.menuSA.showMenu(e.getPlayer());
+						} else {
+							e.getPlayer().sendMessage(Broadcast.get("sign.no-permission"));
+						}
+					}
+					/*
+					 * Checks if the sign is a Shop-sign and opens the shop menu if so.
 					 */
 					else if (s.getLine(2).equalsIgnoreCase(ChatColor.YELLOW + "Open Shop")) {
 						plugin.economy.getMainMenu().showMenu(e.getPlayer());
+						
 					}
 					/*
-					 * Checks if the sign is a Lobby-sign and let you leave the game/teleport to lobby.
+					 * Checks if the sign is a Lobby-sign and let you leave the game/teleport to lobby if so.
 					 */
 					else if (s.getLine(2).equalsIgnoreCase(ChatColor.DARK_RED + "Lobby")) {
 						if (plugin.getArenaManager().isInGame(e.getPlayer())) {
@@ -145,7 +162,7 @@ public class SignListener implements Listener {
 							e.getPlayer().teleport(plugin.getArenaManager().getLobby());
 							e.getPlayer().sendMessage(Broadcast.TAG + Broadcast.get("sign.lobby"));
 						}
-						plugin.signHandler.updateSigns();
+						
 					}
 					/*
 					 * Checks if the sign is a Random Arena-pick sign and picks a random arena.
@@ -190,14 +207,16 @@ public class SignListener implements Listener {
 								count++;
 							}
 						}
+						
+						
 					}
 					/*
 					 * Checks if the sign is indeed an Arena-sign and opens the team-choice menu.
 					 */
 					else if (s.getLine(3).equalsIgnoreCase("Lobby") ||
 							s.getLine(3).equalsIgnoreCase("Starting")) {
-						if (!plugin.signHandler.getSigns().contains(s)) {
-							plugin.signHandler.getSigns().add(s);
+						if (!plugin.signHandler.getSigns().contains(s.getLocation())) {
+							plugin.signHandler.getSigns().add(s.getLocation());
 							e.getPlayer().sendMessage(Broadcast.TAG + Broadcast.get("sign.registered"));
 						} else {
 							Arena a = plugin.getArenaManager().getArena(s.getLine(1));
@@ -212,8 +231,10 @@ public class SignListener implements Listener {
 								e.getPlayer().sendMessage(Broadcast.get("arena.no-exist"));
 							}
 						}
+						
 					} else {
 						e.getPlayer().sendMessage(Broadcast.get("arena.cant-join"));
+						
 					}
 				}
 			}

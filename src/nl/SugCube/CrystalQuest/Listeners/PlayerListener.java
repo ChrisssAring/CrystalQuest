@@ -14,6 +14,7 @@ import nl.SugCube.CrystalQuest.Game.Arena;
 import nl.SugCube.CrystalQuest.Game.ArenaManager;
 import nl.SugCube.CrystalQuest.IO.LoadData;
 
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -42,7 +43,8 @@ import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 
@@ -82,13 +84,16 @@ public class PlayerListener implements Listener {
 			Player p = (Player) e.getEntity();
 			if (plugin.getArenaManager().isInGame(p)) {
 				if (plugin.getArenaManager().getArena(p).getSpectators().contains(p)) {
+					e.setDamage(0);
 					e.setCancelled(true);
 				}
 			}
-		} else if (e.getDamager() instanceof Player) {
+		}
+		if (e.getDamager() instanceof Player) {
 			Player p = (Player) e.getDamager();
 			if (plugin.getArenaManager().isInGame(p)) {
 				if (plugin.getArenaManager().getArena(p).getSpectators().contains(p)) {
+					e.setDamage(0);
 					e.setCancelled(true);
 				}
 			}
@@ -119,11 +124,11 @@ public class PlayerListener implements Listener {
 	}
 	
 	@EventHandler
-	public void onPlayerSpectate(PlayerMoveEvent e) {
+	public void onPlayerMoveOutsideTheArena(PlayerMoveEvent e) {
 		Player p = e.getPlayer();
 		if (plugin.getArenaManager().isInGame(p)) {
+			Location loc = e.getTo();
 			if (plugin.getArenaManager().getArena(p).getSpectators().contains(p)) {
-				Location loc = e.getTo();
 				if (!plugin.prot.isInProtectedArena(loc)) {
 					e.setCancelled(true);
 				}
@@ -166,7 +171,14 @@ public class PlayerListener implements Listener {
 		crystals += extrac;
 		
 		for (Player p : e.getPlayers()) {
-			int money = (int) (crystals * plugin.getConfig().getDouble("shop.crystal-multiplier"));
+			int vip = 1;
+			if (p.hasPermission("crystalquest.doublecash") ||
+					p.hasPermission("crystalquest.admin") ||
+					p.hasPermission("crystalquest.staff")) {
+				vip = 2;
+			}
+			
+			int money = (int) (crystals * plugin.getConfig().getDouble("shop.crystal-multiplier") * vip);
 			
 			double extra = Multipliers.getMultiplier("win",
 					plugin.economy.getLevel(p, "win", "crystals"), false);
@@ -186,7 +198,16 @@ public class PlayerListener implements Listener {
 			 if (plugin.getArenaManager().getArena(player).canDoubleJump()) {
 				 if (!plugin.getArenaManager().getArena(player).getSpectators().contains(player)) {
 					 if (player.getGameMode() != GameMode.CREATIVE) {
-						 player.setVelocity(new Vector(player.getVelocity().getX(), 0.9518, player.getVelocity().getZ()));
+						 
+						 //Check for ability doublejump_boost
+						 double addedVelocity = 0.9518;
+						 if (plugin.ab.getAbilities().containsKey(player)) {
+							 if (plugin.ab.getAbilities().get(player).contains("doublejump_boost")) {
+								 addedVelocity = 1.0982;
+							 }
+						 }
+						 
+						 player.setVelocity(new Vector(player.getVelocity().getX(), addedVelocity, player.getVelocity().getZ()));
 						 player.setVelocity(player.getVelocity().add(player.getLocation().getDirection().multiply(0.3018)));
 						 player.playSound(player.getLocation(), Sound.SHOOT_ARROW, 1F, 1F);
 						 player.setAllowFlight(false);
@@ -241,7 +262,11 @@ public class PlayerListener implements Listener {
 		if (plugin.getConfig().getBoolean("arena.team-colour-prefix")) {
 			Player p = e.getPlayer();
 			if (plugin.getArenaManager().isInGame(p)) {
-				e.setMessage(Teams.getTeamChatColour(plugin.getArenaManager().getTeam(p)) + e.getMessage());
+				if (!plugin.getArenaManager().getArena(p).getSpectators().contains(p)) {
+					e.setMessage(Teams.getTeamChatColour(plugin.getArenaManager().getTeam(p)) + e.getMessage());
+				} else {
+					e.setMessage(ChatColor.BLUE + "[Spec] " + e.getMessage());
+				}
 			}
 		}
 	}
@@ -272,6 +297,7 @@ public class PlayerListener implements Listener {
 				}
 			}
 		}
+		plugin.signHandler.updateSigns();
 	}
 	
 	@EventHandler
@@ -335,6 +361,12 @@ public class PlayerListener implements Listener {
 			
 			p.setLevel(0);
 			p.setExp(0);
+			
+			if (plugin.ab.getAbilities().containsKey(p)) {
+				if (plugin.ab.getAbilities().get(p).contains("health_boost")) {
+					p.addPotionEffect(new PotionEffect(PotionEffectType.HEALTH_BOOST, 36000, 0));
+				}
+			}
 		}
 	}
 	
@@ -372,9 +404,10 @@ public class PlayerListener implements Listener {
 			if (e.getArena().getPlayers().size() + 1 == e.getArena().getMinPlayers() && !e.isSpectating()) {
 				e.getArena().setIsCounting(true);
 				e.getArena().setCountdown(plugin.getConfig().getInt("arena.countdown"));
+				plugin.signHandler.updateSigns();
+				plugin.menuPT.updateMenu(e.getArena());
 				return;
 			}
-			
 		} else {
 			e.getPlayer().sendMessage(Broadcast.get("arena.no-permission"));
 			e.setCancelled(true);
@@ -388,7 +421,8 @@ public class PlayerListener implements Listener {
 	@EventHandler
 	public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent e) {
 		if (!e.getPlayer().hasPermission("crystalquest.admin") && !e.getPlayer().hasPermission("crystalquest.staff")) {
-			if (!e.getMessage().equalsIgnoreCase("/cq quit") && !e.getMessage().equalsIgnoreCase("/cq leave")) {
+			if (!e.getMessage().equalsIgnoreCase("/cq quit") && !e.getMessage().equalsIgnoreCase("/cq leave") &&
+					!e.getMessage().equalsIgnoreCase("/cq class")) {
 				if (plugin.am.isInGame(e.getPlayer())) {
 					e.setCancelled(true);
 					e.getPlayer().sendMessage(Broadcast.get("arena.no-commands"));
@@ -437,9 +471,17 @@ public class PlayerListener implements Listener {
 					TNTPrimed tnt = loc.getWorld().spawn(loc, TNTPrimed.class);
 					tnt.setFuseTicks(40);
 					tnt.setYield(0);
-					e.getPlayer().getInventory().removeItem(new ItemStack(Material.TNT, 1));
+					
+					int amount = p.getItemInHand().getAmount();
+					if (amount == 1) {
+						p.getInventory().remove(p.getItemInHand());
+					} else {
+						p.getItemInHand().setAmount(amount - 1);
+					}
 				}
 			}
 		}
+		
+		
 	}
 }

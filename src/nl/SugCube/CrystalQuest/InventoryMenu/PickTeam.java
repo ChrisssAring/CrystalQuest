@@ -29,6 +29,15 @@ public class PickTeam {
 	}
 	
 	/**
+	 * Updates all the pick-team menus.
+	 */
+	public void updateMenus() {
+		for (Arena a : plugin.getArenaManager().getArenas()) {
+			this.updateMenu(a);
+		}
+	}
+	
+	/**
 	 * Updates the menu to the new amount of available teams.
 	 * @param a (Arena) The arena the menu is used for.
 	 * @return void
@@ -40,11 +49,11 @@ public class PickTeam {
 		
 		if (plugin.getConfig().getBoolean("arena.force-even-teams")) {
 			for (int i : a.getSmallestTeams()) {
-				inv.addItem(this.getWool(a.getId(), i));
+				inv.addItem(this.getWool(i));
 			}
 		} else {
 			for (int i = 0; i < a.getTeamCount(); i++) {
-				inv.addItem(this.getWool(a.getId(), i));
+				inv.addItem(this.getWool(i));
 			}
 		}
 		
@@ -86,7 +95,7 @@ public class PickTeam {
 	 * @param teamId (int) The ID of the team's wool.
 	 * @return (ItemStack) The wool beloning to the given team.
 	 */
-	public ItemStack getWool(int arenaId, int teamId) {
+	public ItemStack getWool(int teamId) {
 		short damageValue = 0;
 		
 		switch (teamId) {

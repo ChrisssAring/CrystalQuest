@@ -16,6 +16,7 @@ import org.bukkit.entity.Egg;
 import org.bukkit.entity.Fireball;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Snowball;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -37,45 +38,68 @@ public class ProjectileListener implements Listener {
 			if (ball.getShooter() instanceof Player) {
 				Player player = (Player) ball.getShooter();
 				if (plugin.getArenaManager().isInGame(player)) {
-					if (e.getEntity() instanceof LivingEntity) {
-						LivingEntity len = (LivingEntity) e.getEntity();
-						if (len != null) {
-							len.setHealth(0);
-							len.getWorld().playSound(len.getLocation(), Sound.BLAZE_DEATH, 20F, 20F);
-							
-							Random ran = new Random();
-							double chance = Multipliers.getMultiplier("blood",
-									plugin.economy.getLevel(player, "blood", "crystals"), false);
-							int multiplier = 1;
-							
-							if (ran.nextInt(100) <= chance * 100 && chance != 0) {
-								multiplier = 2;
-							}
-							
-							//Adds crystals to player's balance
-							int money = (int) (1 * plugin.getConfig().getDouble("shop.crystal-multiplier"));
-							plugin.economy.getBalance().addCrystals(player, money * multiplier, false);
-							String message = plugin.economy.getCoinMessage(player, money * multiplier);
-							if (message != null) {
-								player.sendMessage(message);
-							}
-							
-							if (len instanceof Player) {
-								Player pl = (Player) len;
-								FireworkEffect fe = FireworkEffect.builder().with(Type.CREEPER).withColor(plugin.im.getTeamColour(
-										plugin.getArenaManager().getTeam(pl))).build();
-								try {
-									plugin.particleHandler.playFirework(len.getWorld(), len.getLocation().add(0, 4, 0), fe);
-								} catch (Exception e1) { }
-							} else {
-								FireworkEffect fe = FireworkEffect.builder().with(Type.CREEPER).withColor(Color.WHITE).build();
-								try {
-									plugin.particleHandler.playFirework(len.getWorld(), len.getLocation().add(0, 4, 0), fe);
-								} catch (Exception e1) { }
+					if (!plugin.getArenaManager().getArena(player).getSpectators().contains(player)) {
+						if (e.getEntity() instanceof LivingEntity) {
+							LivingEntity len = (LivingEntity) e.getEntity();
+							if (len != null) {
+								len.setHealth(0);
+								len.getWorld().playSound(len.getLocation(), Sound.BLAZE_DEATH, 20F, 20F);
+								
+								Random ran = new Random();
+								double chance = Multipliers.getMultiplier("blood",
+										plugin.economy.getLevel(player, "blood", "crystals"), false);
+								int multiplier = 1;
+								
+								if (ran.nextInt(100) <= chance * 100 && chance != 0) {
+									multiplier = 2;
+								}
+								
+								//Adds crystals to player's balance
+								int vip = 1;
+								if (player.hasPermission("crystalquest.triplecash") ||
+										player.hasPermission("crystalquest.admin") ||
+										player.hasPermission("crystalquest.staff")) {
+									vip = 3;
+								} else if (player.hasPermission("crystalquest.doublecash")) {
+									vip = 2;
+								}
+								int money = (int) (1 * plugin.getConfig().getDouble("shop.crystal-multiplier"));
+								plugin.economy.getBalance().addCrystals(player, money * multiplier * vip, false);
+								String message = plugin.economy.getCoinMessage(player, money * multiplier * vip);
+								if (message != null) {
+									player.sendMessage(message);
+								}
+								
+								if (len instanceof Player) {
+									Player pl = (Player) len;
+									FireworkEffect fe = FireworkEffect.builder().with(Type.CREEPER).withColor(plugin.im.getTeamColour(
+											plugin.getArenaManager().getTeam(pl))).build();
+									try {
+										plugin.particleHandler.playFirework(len.getWorld(), len.getLocation().add(0, 4, 0), fe);
+									} catch (Exception e1) { }
+								} else {
+									FireworkEffect fe = FireworkEffect.builder().with(Type.CREEPER).withColor(Color.WHITE).build();
+									try {
+										plugin.particleHandler.playFirework(len.getWorld(), len.getLocation().add(0, 4, 0), fe);
+									} catch (Exception e1) { }
+								}
 							}
 						}
 					}
 				}
+			}
+		}
+	}
+	
+	@EventHandler
+	public void onProjectileDamageSpectator(EntityDamageByEntityEvent e) {
+		if(e.getEntity() instanceof Player && e.getDamager() instanceof Projectile) {
+			Player p = (Player) e.getEntity();
+			Projectile proj = (Projectile) e.getDamager();
+			
+			if (plugin.getArenaManager().isSpectator(p)) {
+				e.setCancelled(true);
+				proj.setVelocity(proj.getVelocity());
 			}
 		}
 	}

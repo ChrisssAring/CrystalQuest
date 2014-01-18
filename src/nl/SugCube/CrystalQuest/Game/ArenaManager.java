@@ -28,6 +28,22 @@ public class ArenaManager {
 	}
 
 	/**
+	 * Checks wether the player is in spectate-mode
+	 * @param p (Player) The player to check for
+	 * @return (boolean) True if the player is a spectator. False if not.
+	 */
+	public boolean isSpectator(Player p) {
+		for (Arena a : this.arena) {
+			for (Player pl : a.getPlayers()) {
+				if (a.getSpectators().contains(pl)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	/**
 	 * Gets the location of the Lobbyspawn
 	 * @return (Location) The Lobbyspawn
 	 */
@@ -152,7 +168,6 @@ public class ArenaManager {
 				return a;
 			}
 		}
-		Bukkit.broadcastMessage("Return null");
 		return null;
 	}
 	
@@ -162,7 +177,15 @@ public class ArenaManager {
 	 * @return (int) The arenaId
 	 */
 	public int createArena() {
-		int arenaId = arena.size();
+		boolean isFound = false;
+		int i = 0;
+		while (!isFound) {
+			if (plugin.getArenaManager().getArena(i) == null) {
+				isFound = true;
+			}
+			i++;
+		}
+		int arenaId = i - 1;
 		arena.add(new Arena(plugin, arenaId));
 		return arenaId;
 	}
