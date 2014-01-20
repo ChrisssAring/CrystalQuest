@@ -419,8 +419,10 @@ public class ItemListener implements Listener {
 									for (int i = 0; i < 32; i++) {
 										loc.add(0, 1, 0);
 										if (loc.getBlock().getType() != Material.AIR) {
-											loc.add(0, -1, 0);
-											break;
+											if (loc.clone().add(0, -2, 0).getBlock().getType() == Material.AIR) {
+												loc.add(0, -1, 0);
+												break;
+											}
 										}
 									}
 									if (loc.getBlock().getType() == Material.AIR) {

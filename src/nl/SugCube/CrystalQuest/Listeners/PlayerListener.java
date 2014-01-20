@@ -57,6 +57,23 @@ public class PlayerListener implements Listener {
 	}
 	
 	/*
+	 * Make sure nobody is in the arena.
+	 */
+	@EventHandler
+	public void onPlayerInArena(PlayerMoveEvent e) {
+		Player p = e.getPlayer();
+		if (p.hasPermission("crystalquest.admin") || p.hasPermission("crystalquest.staff")) {
+			return;
+		}
+		
+		if (plugin.prot.isInProtectedArena(p.getLocation())) {
+			if (!plugin.getArenaManager().isInGame(p)) {
+				p.teleport(plugin.getArenaManager().getLobby());
+			}
+		}
+	}
+	
+	/*
 	 * SPECTATOR STUFF
 	 */
 	@EventHandler
